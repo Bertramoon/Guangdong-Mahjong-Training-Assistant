@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createGame, drawPhase, discardPhase } from '../../src/engine/game';
+import { createGame, drawPhase, discardPhase, pengPhase } from '../../src/engine/game';
 
 describe('createGame', () => {
   it('创建新游戏，庄家14张，其余13张', () => {
@@ -72,5 +72,26 @@ describe('discardPhase', () => {
     game.phase = 'discard';
     const fakeTile = { type: 'wan' as const, value: 9, id: 999 };
     expect(() => discardPhase(game, fakeTile)).toThrow();
+  });
+});
+
+describe('pengPhase', () => {
+  it('碰牌后手牌减少2张，副露增加，轮到碰牌者出牌', () => {
+    const game = createGame(0);
+    // Set up: player 0 discarded 一万, robot 1 has 2 copies
+    game.phase = 'reaction';
+    game.lastDiscard = { type: 'wan', value: 1, id: 100 };
+    game.lastDiscardPlayer = 0;
+    game.hands[1] = [
+      { type: 'wan', value: 1, id: 1 },
+      { type: 'wan', value: 1, id: 2 },
+      { type: 'wan', value: 2, id: 3 },
+    ];
+    const next = pengPhase(game, 1);
+    expect(next.hands[1].length).toBe(1);  // only 二万 left
+    expect(next.melds[1].length).toBe(1);
+    expect(next.melds[1][0].type).toBe('peng');
+    expect(next.phase).toBe('discard');
+    expect(next.currentPlayer).toBe(1);
   });
 });

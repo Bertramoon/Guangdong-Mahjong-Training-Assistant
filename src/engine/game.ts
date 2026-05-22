@@ -2,6 +2,7 @@ import type { GameState } from './types';
 import { createAllTiles } from './tile';
 import { shuffleWall, drawInitialHands, drawTile } from './wall';
 import { sortHand } from './hand';
+import { canPeng, canMingGang, createPeng, createMingGang, createAnGang } from './meld';
 
 export function createGame(dealerIndex: number = 0): GameState {
   const allTiles = createAllTiles();
@@ -89,5 +90,84 @@ export function drawPhase(game: GameState): GameState {
     hands: newHands,
     phase: 'discard',
     turnCount: game.turnCount + 1,
+  };
+}
+
+export function checkReactions(game: GameState): number[] {
+  if (game.phase !== 'reaction' || !game.lastDiscard) return [];
+  const reactors: number[] = [];
+  for (let i = 0; i < 4; i++) {
+    if (i === game.lastDiscardPlayer) continue;
+    const hand = game.hands[i];
+    if (canPeng(hand, game.lastDiscard) || canMingGang(hand, game.lastDiscard)) {
+      reactors.push(i);
+    }
+  }
+  return reactors;
+}
+
+export function pengPhase(game: GameState, playerIndex: number): GameState {
+  if (!game.lastDiscard) throw new Error('No discard to peng');
+  const { hand, meld } = createPeng(game.hands[playerIndex], game.lastDiscard);
+  const newHands = game.hands.map((h, i) => (i === playerIndex ? hand : [...h]));
+  const newMelds = game.melds.map((m, i) => (i === playerIndex ? [...m, meld] : [...m]));
+  return {
+    ...game,
+    hands: newHands,
+    melds: newMelds,
+    phase: 'discard',
+    currentPlayer: playerIndex,
+    lastDiscard: null,
+    lastDiscardPlayer: -1,
+  };
+}
+
+export function mingGangPhase(game: GameState, playerIndex: number): GameState {
+  if (!game.lastDiscard) throw new Error('No discard to gang');
+  const { hand, meld } = createMingGang(game.hands[playerIndex], game.lastDiscard);
+  const newHands = game.hands.map((h, i) => (i === playerIndex ? hand : [...h]));
+  const newMelds = game.melds.map((m, i) => (i === playerIndex ? [...m, meld] : [...m]));
+  return {
+    ...game,
+    hands: newHands,
+    melds: newMelds,
+    phase: 'draw',
+    currentPlayer: playerIndex,
+    lastDiscard: null,
+    lastDiscardPlayer: -1,
+  };
+}
+
+export function anGangPhase(game: GameState, type: string, value: number): GameState {
+  const result = createAnGang(game.hands[game.currentPlayer], type as any, value);
+  if (!result) throw new Error('Cannot an_gang');
+  const newHands = game.hands.map((h, i) =>
+    i === game.currentPlayer ? result.hand : [...h],
+  );
+  const newMelds = game.melds.map((m, i) =>
+    i === game.currentPlayer ? [...m, result.meld] : [...m],
+  );
+  const { tile, wall } = drawTile(game.wall);
+  const finalHands = newHands.map((h, i) =>
+    i === game.currentPlayer && tile ? sortHand([...h, tile]) : [...h],
+  );
+  return {
+    ...game,
+    hands: finalHands,
+    melds: newMelds,
+    wall,
+    phase: 'discard',
+    lastDiscard: null,
+  };
+}
+
+export function passReaction(game: GameState, _playerIndex: number): GameState {
+  const nextPlayer = (game.lastDiscardPlayer! + 1) % 4;
+  return {
+    ...game,
+    phase: 'draw',
+    currentPlayer: nextPlayer,
+    lastDiscard: null,
+    lastDiscardPlayer: -1,
   };
 }
