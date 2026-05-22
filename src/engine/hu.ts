@@ -179,3 +179,21 @@ function tryGhostSubstitution(hand: Tile[], ghosts: number): boolean {
 
   return false;
 }
+
+/** 检查当前手牌是否可以自摸胡 */
+export function isSelfHu(
+  hand: Tile[],
+  ghostType: TileType,
+  ghostValue: number,
+): boolean {
+  return canHu(hand, ghostType, ghostValue);
+}
+
+/** 获取自摸信息 */
+export function getHuInfo(
+  hand: Tile[],
+  ghostType: TileType,
+  ghostValue: number,
+): { canHu: boolean } {
+  return { canHu: isSelfHu(hand, ghostType, ghostValue) };
+}
