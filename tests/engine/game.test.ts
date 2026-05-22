@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createGame } from '../../src/engine/game';
+import { createGame, drawPhase, discardPhase } from '../../src/engine/game';
 
 describe('createGame', () => {
   it('创建新游戏，庄家14张，其余13张', () => {
@@ -21,5 +21,56 @@ describe('createGame', () => {
       t => t.type === game.ghostType && t.value === game.ghostValue,
     );
     expect(ghostInWall.length).toBeLessThan(4);
+  });
+});
+
+describe('drawPhase', () => {
+  it('摸牌后手牌+1，进入出牌阶段', () => {
+    const game = createGame(0);
+    const initialLen = game.hands[0].length;
+    const next = drawPhase(game);
+    expect(next.hands[0].length).toBe(initialLen + 1);
+    expect(next.phase).toBe('discard');
+    expect(next.turnCount).toBe(1);
+  });
+
+  it('不是draw阶段不能摸牌', () => {
+    const game = createGame(0);
+    game.phase = 'discard';
+    expect(() => drawPhase(game)).toThrow();
+  });
+
+  it('牌墙空时进入流局', () => {
+    const game = createGame(0);
+    game.wall = [];
+    const next = drawPhase(game);
+    expect(next.phase).toBe('draw_end');
+    expect(next.winner).toBe(-1);
+  });
+});
+
+describe('discardPhase', () => {
+  it('出牌后手牌-1，进入反应阶段', () => {
+    const game = createGame(0);
+    const afterDraw = drawPhase(game);
+    const tile = afterDraw.hands[0][0];
+    const next = discardPhase(afterDraw, tile);
+    expect(next.hands[0].length).toBe(afterDraw.hands[0].length - 1);
+    expect(next.lastDiscard).not.toBeNull();
+    expect(next.lastDiscardPlayer).toBe(0);
+    expect(next.discards[0].length).toBe(1);
+  });
+
+  it('非出牌阶段不能出牌', () => {
+    const game = createGame(0);
+    const tile = game.hands[0][0];
+    expect(() => discardPhase(game, tile)).toThrow();
+  });
+
+  it('手中没有该牌时报错', () => {
+    const game = createGame(0);
+    game.phase = 'discard';
+    const fakeTile = { type: 'wan' as const, value: 9, id: 999 };
+    expect(() => discardPhase(game, fakeTile)).toThrow();
   });
 });
