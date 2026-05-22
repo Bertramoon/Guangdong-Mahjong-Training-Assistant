@@ -133,3 +133,44 @@ describe('isSelfHu', () => {
     expect(isSelfHu(hand, 'wan', 1)).toBe(false);
   });
 });
+
+describe('边界情况', () => {
+  it('空手牌', () => {
+    expect(canHu([], null, null)).toBe(false);
+  });
+
+  it('只有雀头2张', () => {
+    const hand = [h('w',1), h('w',1)];
+    expect(canHu(hand, null, null)).toBe(true);
+  });
+
+  it('混一色 万字+箭刻', () => {
+    const hand: Tile[] = [
+      h('w',1),h('w',1),
+      h('w',2),h('w',2),h('w',2),
+      h('w',3),h('w',4),h('w',5),
+      h('w',6),h('w',7),h('w',8),
+      h('j',1),h('j',1),h('j',1),
+    ];
+    expect(canHu(hand, null, null)).toBe(true);
+  });
+
+  it('1张鬼牌+13张正常牌可胡', () => {
+    // 4 complete melds + 1 single + 1 ghost = 14 tiles
+    const hand: Tile[] = [
+      h('w',1),h('w',2),h('w',3),
+      h('t',4),h('t',5),h('t',6),
+      h('g',7),h('g',8),h('g',9),
+      h('j',1),h('j',1),h('j',1),
+      h('w',5),  // single tile
+      // ghost (1万) should act as 5万 to form a pair
+      h('w',1),
+    ];
+    expect(canHu(hand, 'wan', 1)).toBe(true);
+  });
+
+  it('1张牌不能胡（小于2张）', () => {
+    const hand = [h('w',1)];
+    expect(canHu(hand, null, null)).toBe(false);
+  });
+});
