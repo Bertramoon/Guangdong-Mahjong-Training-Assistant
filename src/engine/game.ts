@@ -1,4 +1,4 @@
-import type { GameState } from './types';
+import type { GameState, Tile } from './types';
 import { createAllTiles } from './tile';
 import { shuffleWall, drawInitialHands, drawTile } from './wall';
 import { sortHand } from './hand';
@@ -32,8 +32,6 @@ export function createGame(dealerIndex: number = 0): GameState {
   return game;
 }
 
-import type { Tile } from './types';
-
 export function discardPhase(game: GameState, tile: Tile): GameState {
   if (game.phase !== 'discard') {
     throw new Error(`Cannot discard in phase: ${game.phase}`);
@@ -55,12 +53,14 @@ export function discardPhase(game: GameState, tile: Tile): GameState {
   );
 
   const nextPhase = player === 0 ? 'reaction' : 'draw';
+  const nextPlayer = player === 0 ? player : (player + 1) % 4;
 
   return {
     ...game,
     hands: newHands,
     discards: newDiscards,
     phase: nextPhase,
+    currentPlayer: nextPlayer,
     lastDiscard: tile,
     lastDiscardPlayer: player,
   };
