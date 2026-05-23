@@ -1,3 +1,7 @@
 <template>
-  <div>广东麻将训练助手</div>
+  <GameView />
 </template>
+
+<script setup lang="ts">
+import GameView from './components/GameView.vue';
+</script>
