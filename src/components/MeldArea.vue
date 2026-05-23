@@ -6,6 +6,7 @@
         :key="tile.id"
         :tile="tile"
         :face-down="meld.type === 'an_gang' && tile === meld.tiles[0]"
+        :highlighted="matchedTileIds.includes(tile.id)"
         :ghost-type="ghostType"
         :ghost-value="ghostValue"
       />
@@ -20,6 +21,7 @@ import TileComponent from './TileComponent.vue';
 
 defineProps<{
   melds: Meld[];
+  matchedTileIds: number[];
   ghostType: TileType;
   ghostValue: number;
 }>();

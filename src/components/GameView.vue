@@ -12,6 +12,7 @@
         :discards="gameState.discards"
         :selected-tile-id="selectedTile?.id ?? null"
         :highlighted-tile-ids="highlightedTileIds"
+        :matched-tile-ids="matchedTileIds"
         :ghost-type="gameState.ghostType"
         :ghost-value="gameState.ghostValue"
         :ghost-name="ghostName"
@@ -68,6 +69,7 @@ const {
   canHuNow,
   jiaGangOptions,
   highlightedTileIds,
+  matchedTileIds,
   currentPlayerName,
   ghostName,
   startGameAndAutoPlay,

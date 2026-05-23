@@ -8,6 +8,7 @@
         :hand-count="topPlayerHandCount"
         :melds="topPlayerMelds"
         :discards="topPlayerDiscards"
+        :matched-tile-ids="matchedTileIds"
         :ghost-type="ghostType"
         :ghost-value="ghostValue"
       />
@@ -22,13 +23,14 @@
           :hand-count="leftPlayerHandCount"
           :melds="leftPlayerMelds"
           :discards="leftPlayerDiscards"
+          :matched-tile-ids="matchedTileIds"
           :ghost-type="ghostType"
           :ghost-value="ghostValue"
         />
       </div>
 
       <div class="board-center">
-        <DiscardPool :tiles="centerDiscards" />
+        <DiscardPool :tiles="centerDiscards" :matched-tile-ids="matchedTileIds" />
         <div class="ghost-indicator">鬼牌: {{ ghostName }}</div>
         <div class="turn-info" v-if="turnText">{{ turnText }}</div>
       </div>
@@ -40,6 +42,7 @@
           :hand-count="rightPlayerHandCount"
           :melds="rightPlayerMelds"
           :discards="rightPlayerDiscards"
+          :matched-tile-ids="matchedTileIds"
           :ghost-type="ghostType"
           :ghost-value="ghostValue"
         />
@@ -48,7 +51,7 @@
 
     <!-- Bottom: Player (South) -->
     <div class="board-bottom">
-      <MeldArea :melds="playerMelds" :ghost-type="ghostType" :ghost-value="ghostValue" />
+      <MeldArea :melds="playerMelds" :matched-tile-ids="matchedTileIds" :ghost-type="ghostType" :ghost-value="ghostValue" />
       <PlayerHand
         :tiles="playerHand"
         label="你的手牌"
@@ -76,6 +79,7 @@ const props = defineProps<{
   discards: Tile[][];
   selectedTileId: number | null;
   highlightedTileIds: number[];
+  matchedTileIds: number[];
   ghostType: TileType;
   ghostValue: number;
   ghostName: string;

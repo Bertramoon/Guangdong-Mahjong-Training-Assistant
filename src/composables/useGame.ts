@@ -43,6 +43,25 @@ export function useGame() {
     return gameState.value.discards[0];
   });
 
+  const matchedTileIds = computed(() => {
+    if (!selectedTile.value || !gameState.value) return [];
+    const { type, value } = selectedTile.value;
+    const ids: number[] = [];
+    for (const player of gameState.value.discards) {
+      for (const t of player) {
+        if (t.type === type && t.value === value) ids.push(t.id);
+      }
+    }
+    for (const player of gameState.value.melds) {
+      for (const meld of player) {
+        for (const t of meld.tiles) {
+          if (t.type === type && t.value === value) ids.push(t.id);
+        }
+      }
+    }
+    return ids;
+  });
+
   const ghostName = computed(() => {
     if (!gameState.value) return '';
     return getTileName({
@@ -361,6 +380,7 @@ export function useGame() {
     canAnGangNow,
     jiaGangOptions,
     highlightedTileIds,
+    matchedTileIds,
     currentPlayerName,
     playerHand,
     playerMelds,

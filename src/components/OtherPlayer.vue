@@ -2,13 +2,13 @@
   <div class="other-player">
     <div class="other-name">{{ name }}</div>
     <div class="other-melds">
-      <MeldArea :melds="melds" :ghost-type="ghostType" :ghost-value="ghostValue" />
+      <MeldArea :melds="melds" :matched-tile-ids="matchedTileIds" :ghost-type="ghostType" :ghost-value="ghostValue" />
     </div>
     <div class="other-hand">
       <TileComponent v-for="i in handCount" :key="i" :tile="null" :face-down="true" />
     </div>
     <div class="other-discards" v-if="discards.length > 0">
-      <TileComponent v-for="(tile, i) in discards.slice(-6)" :key="i" :tile="tile" />
+      <TileComponent v-for="(tile, i) in discards.slice(-6)" :key="i" :tile="tile" :highlighted="matchedTileIds.includes(tile.id)" />
     </div>
   </div>
 </template>
@@ -23,6 +23,7 @@ defineProps<{
   handCount: number;
   melds: Meld[];
   discards: Tile[];
+  matchedTileIds: number[];
   ghostType: TileType;
   ghostValue: number;
 }>();

@@ -2,7 +2,7 @@
   <div class="discard-pool">
     <div class="discard-title">弃牌池</div>
     <div class="discard-grid">
-      <TileComponent v-for="(tile, i) in tiles" :key="i" :tile="tile" />
+      <TileComponent v-for="(tile, i) in tiles" :key="i" :tile="tile" :highlighted="matchedTileIds.includes(tile.id)" />
     </div>
   </div>
 </template>
@@ -11,7 +11,7 @@
 import type { Tile } from '../engine/types';
 import TileComponent from './TileComponent.vue';
 
-defineProps<{ tiles: Tile[] }>();
+defineProps<{ tiles: Tile[]; matchedTileIds: number[] }>();
 </script>
 
 <style scoped>
