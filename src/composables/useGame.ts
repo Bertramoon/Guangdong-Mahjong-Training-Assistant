@@ -70,7 +70,11 @@ export function useGame() {
   }
 
   function startNewGame() {
-    const game = createGame(0);
+    let game = createGame(0);
+    // 庄家已有14张牌（初始发牌时已多摸一张），直接进入出牌阶段
+    if (game.currentPlayer === 0 && game.hands[0].length === 14) {
+      game = { ...game, phase: 'discard' as const };
+    }
     gameState.value = game;
     selectedTile.value = null;
     gameLog.value = [];
@@ -80,8 +84,6 @@ export function useGame() {
     jiaGangOptions.value = [];
     addLog(`新游戏开始！鬼牌: ${getTileName({ type: game.ghostType, value: game.ghostValue, id: -1 })}`);
 
-    // 庄家是玩家，庄家14张直接进入出牌阶段
-    // 检查是否可以胡/加杠
     updateActions(game);
   }
 
