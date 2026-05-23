@@ -26,7 +26,7 @@ function bamboo(cx: number, cy: number): string {
     + `<rect x="${cx - w / 2 + 1}" y="${cy - h / 2 + 2}" width="${w - 2}" height="${h - 4}" rx="1" fill="#3da83d" stroke="none"/>`;
 }
 
-const NUM_CHARS = '壹貳叄肆伍陸柒捌玖';
+const NUM_CHARS = '一二三四伍六七八九';
 
 export function getTileSVG(tile: Tile): string {
   let body = '';
@@ -43,8 +43,8 @@ export function getTileSVG(tile: Tile): string {
       }
       break;
     case 'wan':
-      body = `<text x="22" y="24" text-anchor="middle" dominant-baseline="central" font-size="22" font-weight="bold" fill="#cc1111" font-family="SimSun,serif">${NUM_CHARS[tile.value - 1]}</text>`
-        + `<text x="22" y="44" text-anchor="middle" dominant-baseline="central" font-size="20" font-weight="bold" fill="#cc1111" font-family="SimSun,serif">万</text>`;
+      body = `<text x="22" y="24" text-anchor="middle" dominant-baseline="central" font-size="22" font-weight="bold" fill="#222" font-family="SimSun,serif">${NUM_CHARS[tile.value - 1]}</text>`
+        + `<text x="22" y="44" text-anchor="middle" dominant-baseline="central" font-size="20" font-weight="bold" fill="#cc1111" font-family="SimSun,serif">萬</text>`;
       break;
     case 'feng': {
       const chars = '东南西北';
