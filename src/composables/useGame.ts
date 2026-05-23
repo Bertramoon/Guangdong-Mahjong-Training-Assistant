@@ -76,7 +76,7 @@ export function useGame() {
     if (gameLog.value.length > 100) gameLog.value.shift();
   }
 
-  function updateActions(game: GameState) {
+  function updateActions(game: GameState, checkHu: boolean = true) {
     if (game.currentPlayer !== 0 || game.phase !== 'discard') {
       canHuNow.value = false;
       canJiaGangNow.value = false;
@@ -84,7 +84,7 @@ export function useGame() {
       jiaGangOptions.value = [];
       return;
     }
-    canHuNow.value = isSelfHu(game.hands[0], game.ghostType, game.ghostValue);
+    canHuNow.value = checkHu && isSelfHu(game.hands[0], game.ghostType, game.ghostValue);
     canAnGangNow.value = canAnGang(game.hands[0]);
     jiaGangOptions.value = getJiaGangCandidates(game.hands[0], game.melds[0]);
     canJiaGangNow.value = jiaGangOptions.value.length > 0;
@@ -145,7 +145,7 @@ export function useGame() {
     const next = pengPhase(game, 0);
     addLog(`你碰了: ${getTileName(game.lastDiscard)}`);
     gameState.value = next;
-    updateActions(next);
+    updateActions(next, false);
   }
 
   function playerMingGang() {
