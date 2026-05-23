@@ -3,7 +3,7 @@ import type { GameState, Tile, TileType } from '../engine/types';
 import {
   createGame, drawPhase, discardPhase,
   pengPhase, mingGangPhase, jiaGangPhase,
-  checkReactions, passReaction,
+  checkReactions, passReaction, nextPlayerAfter,
 } from '../engine/game';
 import { isSelfHu } from '../engine/hu';
 import { getTileName } from '../engine/tile';
@@ -203,7 +203,8 @@ export function useGame() {
     if (!game.lastDiscard) return;
     const discardPlayer = game.lastDiscardPlayer;
 
-    for (let i = 1; i <= 3; i++) {
+    // Check robots in counter-clockwise order: after player 0 (South) → East(3), North(2), West(1)
+    for (const i of [3, 2, 1]) {
       if (i === discardPlayer) continue;
       const hand = game.hands[i];
 
@@ -297,9 +298,10 @@ export function useGame() {
         return; // Stop auto-play, wait for human decision
       }
 
-      // Check if other robots can react
+      // Check if other robots can react (in counter-clockwise order, skipping human)
       let g: GameState = afterDiscard;
-      for (let i = 1; i <= 3; i++) {
+      const robotReactionOrder = [3, 2, 1].map(d => (player + d) % 4).filter(i => i !== 0);
+      for (const i of robotReactionOrder) {
         if (i === player) continue;
         if (robotShouldMingGang(g.hands[i], tile)) {
           g = mingGangPhase(g, i);

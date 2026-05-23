@@ -4,6 +4,11 @@ import { shuffleWall, drawInitialHands, drawTile } from './wall';
 import { sortHand } from './hand';
 import { canPeng, canMingGang, createPeng, createMingGang, createAnGang, createJiaGang } from './meld';
 
+/** 逆时针顺序：南(0)→东(3)→北(2)→西(1) */
+export function nextPlayerAfter(player: number): number {
+  return (player + 3) % 4;
+}
+
 export function createGame(dealerIndex: number = 0): GameState {
   const allTiles = createAllTiles();
   const shuffled = shuffleWall(allTiles);
@@ -11,7 +16,7 @@ export function createGame(dealerIndex: number = 0): GameState {
 
   const ghostDraw = drawTile(remaining);
   const ghostTile = ghostDraw.tile!;
-  const wall = ghostDraw.wall;
+  const wall = [...ghostDraw.wall, ghostTile];
 
   const game: GameState = {
     wall,
@@ -53,7 +58,7 @@ export function discardPhase(game: GameState, tile: Tile): GameState {
   );
 
   const nextPhase = player === 0 ? 'reaction' : 'draw';
-  const nextPlayer = player === 0 ? player : (player + 1) % 4;
+  const nextPlayer = player === 0 ? player : nextPlayerAfter(player);
 
   return {
     ...game,
@@ -96,12 +101,13 @@ export function drawPhase(game: GameState): GameState {
 export function checkReactions(game: GameState): number[] {
   if (game.phase !== 'reaction' || !game.lastDiscard) return [];
   const reactors: number[] = [];
-  for (let i = 0; i < 4; i++) {
-    if (i === game.lastDiscardPlayer) continue;
-    const hand = game.hands[i];
+  let p = nextPlayerAfter(game.lastDiscardPlayer);
+  for (let i = 0; i < 3; i++) {
+    const hand = game.hands[p];
     if (canPeng(hand, game.lastDiscard) || canMingGang(hand, game.lastDiscard)) {
-      reactors.push(i);
+      reactors.push(p);
     }
+    p = nextPlayerAfter(p);
   }
   return reactors;
 }
@@ -204,7 +210,7 @@ export function jiaGangPhase(game: GameState, type: string, value: number): Game
 }
 
 export function passReaction(game: GameState, _playerIndex: number): GameState {
-  const nextPlayer = (game.lastDiscardPlayer! + 1) % 4;
+  const nextPlayer = nextPlayerAfter(game.lastDiscardPlayer!);
   return {
     ...game,
     phase: 'draw',

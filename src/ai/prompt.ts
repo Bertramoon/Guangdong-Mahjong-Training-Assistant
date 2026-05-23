@@ -19,8 +19,8 @@ export function buildSystemPrompt(): string {
 - 3n + 2的经典组合可胡牌，如果胡牌了就直接告诉用户已经可以胡牌了就行
 - 牌局阶段如下
   - draw: 摸牌阶段
-  - discard: 出牌阶段（等待当前玩家出牌）
-  - reaction: 反应阶段（等待其他玩家决定碰/杠）
+  - discard: 出牌阶段，等待出牌。注意，此时已经是摸完牌的阶段了
+  - reaction: 反应阶段（等待决定碰/杠）
 
 请根据当前牌局状况，分析并给出建议。你的输出必须是JSON格式：
 \`\`\`json
@@ -42,7 +42,7 @@ export function buildUserPrompt(game: GameState, playerIndex: number): string {
 
   // Ghost tile
   const ghostName = getTileName({ type: game.ghostType, value: game.ghostValue, id: -1 });
-  lines.push(`鬼牌（万能牌）：${ghostName}`);
+  lines.push(`本局指定鬼牌（万能牌，每局共四张）：${ghostName}`);
 
   // Wall remaining
   lines.push(`牌墙剩余：${game.wall.length}张`);
@@ -52,8 +52,8 @@ export function buildUserPrompt(game: GameState, playerIndex: number): string {
   if (playerMelds.length > 0) {
     const meldStrs = playerMelds.map(m => {
       const name = MELD_TYPE_NAMES[m.type];
-      const tiles = m.tiles.map(getTileName).join('');
-      return `${name}${tiles}`;
+      const tile =  m.tiles.length ? getTileName(m.tiles[0]) : '';
+      return `${name}${tile}`;
     });
     lines.push(`你的副露：${meldStrs.join('、')}`);
   }
@@ -72,8 +72,8 @@ export function buildUserPrompt(game: GameState, playerIndex: number): string {
     if (game.melds[i].length > 0) {
       const meldStrs = game.melds[i].map(m => {
         const name = MELD_TYPE_NAMES[m.type];
-        const tiles = m.tiles.length ? getTileName(m.tiles[0]) : '';
-        return `${name}${tiles}`;
+        const tile = m.tiles.length ? getTileName(m.tiles[0]) : '';
+        return `${name}${tile}`;
       });
       lines.push(`${playerLabels[i]}的副露：${meldStrs.join('、')}`);
     }
