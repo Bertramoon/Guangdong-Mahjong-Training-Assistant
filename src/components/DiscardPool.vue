@@ -26,7 +26,7 @@ defineProps<{ tiles: Tile[]; matchedTileIds: number[] }>();
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
-  max-width: 320px;
+  min-width: 280px;
   justify-content: center;
 }
 .discard-grid :deep(.tile) {

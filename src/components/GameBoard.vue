@@ -137,6 +137,7 @@ const centerDiscards = computed(() => props.discards.flat());
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  min-width: 300px;
 }
 .ghost-indicator {
   font-size: 14px;

@@ -1,5 +1,5 @@
 <template>
-  <div class="meld-area" v-if="melds.length > 0">
+  <div class="meld-area" :class="{ column: direction === 'column' }" v-if="melds.length > 0">
     <div v-for="(meld, i) in melds" :key="i" class="meld-group">
       <TileComponent
         v-for="tile in meld.tiles"
@@ -24,6 +24,7 @@ defineProps<{
   matchedTileIds: number[];
   ghostType: TileType;
   ghostValue: number;
+  direction?: 'row' | 'column';
 }>();
 
 function typeLabel(type: string): string {
@@ -39,6 +40,10 @@ function typeLabel(type: string): string {
   display: flex;
   gap: 12px;
   padding: 4px 8px;
+}
+.meld-area.column {
+  flex-direction: column;
+  gap: 6px;
 }
 .meld-group {
   display: flex;

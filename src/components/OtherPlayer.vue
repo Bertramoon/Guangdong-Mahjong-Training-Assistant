@@ -2,7 +2,7 @@
   <div class="other-player">
     <div class="other-name">{{ name }}</div>
     <div class="other-melds">
-      <MeldArea :melds="melds" :matched-tile-ids="matchedTileIds" :ghost-type="ghostType" :ghost-value="ghostValue" />
+      <MeldArea :melds="melds" :matched-tile-ids="matchedTileIds" :ghost-type="ghostType" :ghost-value="ghostValue" :direction="position === 'left' || position === 'right' ? 'column' : 'row'" />
     </div>
     <div class="other-hand">
       <TileComponent v-for="i in handCount" :key="i" :tile="null" :face-down="true" />
@@ -20,6 +20,7 @@ import MeldArea from './MeldArea.vue';
 
 defineProps<{
   name: string;
+  position: 'left' | 'right' | 'top';
   handCount: number;
   melds: Meld[];
   discards: Tile[];
