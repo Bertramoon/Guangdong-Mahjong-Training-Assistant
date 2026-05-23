@@ -26,7 +26,7 @@ function bamboo(cx: number, cy: number): string {
     + `<rect x="${cx - w / 2 + 1}" y="${cy - h / 2 + 2}" width="${w - 2}" height="${h - 4}" rx="1" fill="#3da83d" stroke="none"/>`;
 }
 
-const NUM_CHARS = '一二三四五六七八九';
+const NUM_CHARS = '壹貳叄肆伍陸柒捌玖';
 
 export function getTileSVG(tile: Tile): string {
   let body = '';
