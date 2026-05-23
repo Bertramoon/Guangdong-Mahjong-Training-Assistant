@@ -6,6 +6,7 @@
         name="机器人2(北)"
         position="top"
         :hand-count="topPlayerHandCount"
+        :hand-tiles="topPlayerHandTiles"
         :melds="topPlayerMelds"
         :discards="topPlayerDiscards"
         :matched-tile-ids="matchedTileIds"
@@ -21,6 +22,7 @@
           name="机器人1(西)"
           position="left"
           :hand-count="leftPlayerHandCount"
+          :hand-tiles="leftPlayerHandTiles"
           :melds="leftPlayerMelds"
           :discards="leftPlayerDiscards"
           :matched-tile-ids="matchedTileIds"
@@ -30,7 +32,7 @@
       </div>
 
       <div class="board-center">
-        <DiscardPool :tiles="centerDiscards" :matched-tile-ids="matchedTileIds" />
+        <DiscardPool :tiles="centerDiscards" :matched-tile-ids="matchedTileIds" :wall-tiles="wallTiles" :ghost-type="ghostType" :ghost-value="ghostValue" />
         <div class="ghost-indicator">鬼牌: {{ ghostName }}</div>
         <div class="turn-info" v-if="turnText">{{ turnText }}</div>
       </div>
@@ -40,6 +42,7 @@
           name="机器人3(东)"
           position="right"
           :hand-count="rightPlayerHandCount"
+          :hand-tiles="rightPlayerHandTiles"
           :melds="rightPlayerMelds"
           :discards="rightPlayerDiscards"
           :matched-tile-ids="matchedTileIds"
@@ -86,6 +89,8 @@ const props = defineProps<{
   currentPlayer: number;
   phase: string;
   turnText: string;
+  revealMode?: boolean;
+  wallTiles?: Tile[];
 }>();
 
 defineEmits<{
@@ -98,6 +103,10 @@ const playerMelds = computed(() => props.melds[0]);
 const leftPlayerHandCount = computed(() => props.hands[1].length);
 const topPlayerHandCount = computed(() => props.hands[2].length);
 const rightPlayerHandCount = computed(() => props.hands[3].length);
+
+const leftPlayerHandTiles = computed(() => props.revealMode ? props.hands[1] : undefined);
+const topPlayerHandTiles = computed(() => props.revealMode ? props.hands[2] : undefined);
+const rightPlayerHandTiles = computed(() => props.revealMode ? props.hands[3] : undefined);
 
 const leftPlayerMelds = computed(() => props.melds[1]);
 const topPlayerMelds = computed(() => props.melds[2]);
