@@ -1,4 +1,4 @@
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import type { GameState, Tile, TileType } from '../engine/types';
 import {
   createGame, drawPhase, discardPhase,
@@ -359,16 +359,6 @@ export function useGame() {
     await delay(300);
     await autoPlayUntilPlayer();
   }
-
-  watch(
-    () => gameState.value ? `${gameState.value.phase}-${gameState.value.currentPlayer}` : null,
-    async () => {
-      if (!gameState.value) return;
-      if (gameState.value.phase === 'draw' && gameState.value.currentPlayer !== 0 && !isProcessing.value) {
-        await autoPlayUntilPlayer();
-      }
-    },
-  );
 
   return {
     gameState,
