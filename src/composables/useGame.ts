@@ -307,7 +307,7 @@ export function useGame() {
 
       // Check if human player can react to this discard
       if (canPeng(afterDiscard.hands[0], tile) || canMingGang(afterDiscard.hands[0], tile)) {
-        gameState.value = { ...afterDiscard, phase: 'reaction' };
+        gameState.value = { ...afterDiscard, phase: 'reaction', currentPlayer: 0 };
         highlightedTileIds.value = afterDiscard.hands[0]
           .filter(t => t.type === tile.type && t.value === tile.value)
           .map(t => t.id);
@@ -331,6 +331,14 @@ export function useGame() {
               g = discardPhase(rd, rdTile);
               addLog(`机器人${i}打出: ${getTileName(rdTile)}`);
               gameState.value = g;
+              // Check if human can react to gang player's discard
+              if (canPeng(g.hands[0], rdTile) || canMingGang(g.hands[0], rdTile)) {
+                gameState.value = { ...g, phase: 'reaction', currentPlayer: 0 };
+                highlightedTileIds.value = g.hands[0]
+                  .filter(t => t.type === rdTile.type && t.value === rdTile.value)
+                  .map(t => t.id);
+                return;
+              }
             }
           }
           return;
@@ -344,6 +352,14 @@ export function useGame() {
             g = discardPhase(g, rdTile);
             addLog(`机器人${i}打出: ${getTileName(rdTile)}`);
             gameState.value = g;
+            // Check if human can react to peng player's discard
+            if (canPeng(g.hands[0], rdTile) || canMingGang(g.hands[0], rdTile)) {
+              gameState.value = { ...g, phase: 'reaction', currentPlayer: 0 };
+              highlightedTileIds.value = g.hands[0]
+                .filter(t => t.type === rdTile.type && t.value === rdTile.value)
+                .map(t => t.id);
+              return;
+            }
           }
           return;
         }
@@ -362,7 +378,8 @@ export function useGame() {
       gameState.value &&
       gameState.value.currentPlayer !== 0 &&
       gameState.value.phase !== 'draw_end' &&
-      gameState.value.phase !== 'hu'
+      gameState.value.phase !== 'hu' &&
+      gameState.value.phase !== 'reaction'
     ) {
       await executeRobotTurn();
       await delay(300);
