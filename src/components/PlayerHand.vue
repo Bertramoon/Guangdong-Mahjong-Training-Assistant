@@ -7,6 +7,7 @@
         :key="tile.id"
         :tile="tile"
         :selected="selectedId === tile.id"
+        :drawn="tile.id === drawnTileId"
         :ghost-type="ghostType"
         :ghost-value="ghostValue"
         @click="$emit('select', $event)"
@@ -23,6 +24,7 @@ defineProps<{
   tiles: Tile[];
   label: string;
   selectedId: number | null;
+  drawnTileId: number | null;
   ghostType: TileType;
   ghostValue: number;
 }>();

@@ -20,6 +20,7 @@ export function useGame() {
   const canJiaGangNow = ref(false);
   const canAnGangNow = ref(false);
   const jiaGangOptions = ref<{ type: TileType; value: number }[]>([]);
+  const drawnTileId = ref<number | null>(null);
 
   const currentPlayerName = computed(() => {
     if (!gameState.value) return '';
@@ -108,6 +109,7 @@ export function useGame() {
     addLog(`你打出: ${getTileName(tile)}`);
     gameState.value = next;
     selectedTile.value = null;
+    drawnTileId.value = null;
 
     // After player discards, robots may react
     if (next.phase === 'reaction') {
@@ -281,7 +283,10 @@ export function useGame() {
       await delay(300);
     }
     if (gameState.value && gameState.value.currentPlayer === 0 && gameState.value.phase === 'draw') {
+      const oldIds = new Set(gameState.value.hands[0].map(t => t.id));
       const next = drawPhase(gameState.value);
+      const newTile = next.hands[0].find(t => !oldIds.has(t.id));
+      drawnTileId.value = newTile?.id ?? null;
       addLog('你摸牌');
       gameState.value = next;
     }
@@ -315,6 +320,7 @@ export function useGame() {
     canJiaGangNow,
     canAnGangNow,
     jiaGangOptions,
+    drawnTileId,
     currentPlayerName,
     playerHand,
     playerMelds,

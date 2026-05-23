@@ -5,6 +5,7 @@
       'tile--selected': selected,
       'tile--back': faceDown,
       'tile--ghost': isGhost,
+      'tile--drawn': drawn,
     }"
     @click="tile && $emit('click', tile)"
   >
@@ -22,11 +23,13 @@ const props = withDefaults(defineProps<{
   tile: Tile | null;
   selected?: boolean;
   faceDown?: boolean;
+  drawn?: boolean;
   ghostType?: TileType;
   ghostValue?: number;
 }>(), {
   selected: false,
   faceDown: false,
+  drawn: false,
 });
 
 defineEmits<{
@@ -79,6 +82,10 @@ const isGhost = computed(() => {
 .tile--ghost {
   background: #ffe8e8;
   border-color: #ff4444;
+}
+.tile--drawn {
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
 }
 .tile__text {
   line-height: 1;

@@ -53,6 +53,7 @@
         :tiles="playerHand"
         label="你的手牌"
         :selected-id="selectedTileId"
+        :drawn-tile-id="drawnTileId"
         :ghost-type="ghostType"
         :ghost-value="ghostValue"
         @select="$emit('select-tile', $event)"
@@ -74,6 +75,7 @@ const props = defineProps<{
   melds: Meld[][];
   discards: Tile[][];
   selectedTileId: number | null;
+  drawnTileId: number | null;
   ghostType: TileType;
   ghostValue: number;
   ghostName: string;
