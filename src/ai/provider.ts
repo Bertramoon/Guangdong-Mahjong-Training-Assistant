@@ -6,6 +6,7 @@ export interface AIProviderConfig {
 
 export interface AIResponse {
   content: string;
+  reasoning_content?: string;
   model: string;
   error?: string;
 }
@@ -29,7 +30,8 @@ export async function callAI(
         model: config.model,
         messages,
         temperature: temperature ?? 0.7,
-        max_tokens: maxTokens ?? 1024,
+        max_tokens: maxTokens ?? 4096,
+        response_format: { type: 'json_object' }
       }),
     });
 

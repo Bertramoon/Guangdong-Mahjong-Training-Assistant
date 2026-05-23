@@ -24,7 +24,7 @@ export async function analyzeGame(
       { role: 'user', content: buildUserPrompt(game, idx) },
     ],
     0.3,
-    800,
+    8192,
   );
 
   if (response.error) {

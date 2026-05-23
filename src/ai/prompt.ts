@@ -13,13 +13,24 @@ export function buildSystemPrompt(): string {
 
 规则要点：
 - 不允许吃牌（chi），只允许碰（peng）、杠（gang）、胡（hu）
-- 有鬼牌（万能牌），鬼牌可以替代任意牌
+- 每局都会指定任意一种牌作为鬼牌（万能牌），因此鬼牌固定有四张。鬼牌可以替代任意牌，但不能在碰或杠时作为鬼牌使用
+- 绝对不允许丢弃鬼牌
 - 共136张牌：万（1-9）、条（1-9）、筒（1-9）各4张，风牌（东南西北）各4张，箭牌（中发白）各4张
+- 3n + 2的经典组合可胡牌，如果胡牌了就直接告诉用户已经可以胡牌了就行
+- 牌局阶段如下
+  - draw: 摸牌阶段
+  - discard: 出牌阶段（等待当前玩家出牌）
+  - reaction: 反应阶段（等待其他玩家决定碰/杠）
 
 请根据当前牌局状况，分析并给出建议。你的输出必须是JSON格式：
-{"recommendation": "建议的操作", "reasoning": "分析原因", "alternative": "备选方案（可选）"}
-
-请用中文回答。`;
+\`\`\`json
+{
+  "recommendation": "建议的操作",
+  "draws": "如果已经听牌，听哪几张牌",
+  "reasoning": "分析原因",
+  "alternative": "备选方案（可选）"
+}
+\`\`\``;
 }
 
 export function buildUserPrompt(game: GameState, playerIndex: number): string {
@@ -61,7 +72,7 @@ export function buildUserPrompt(game: GameState, playerIndex: number): string {
     if (game.melds[i].length > 0) {
       const meldStrs = game.melds[i].map(m => {
         const name = MELD_TYPE_NAMES[m.type];
-        const tiles = m.tiles.map(getTileName).join('');
+        const tiles = m.tiles.length ? getTileName(m.tiles[0]) : '';
         return `${name}${tiles}`;
       });
       lines.push(`${playerLabels[i]}的副露：${meldStrs.join('、')}`);
