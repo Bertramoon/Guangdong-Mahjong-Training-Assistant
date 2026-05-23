@@ -9,17 +9,7 @@
     }"
     @click="tile && $emit('click', tile)"
   >
-    <template v-if="!faceDown && tile">
-      <!-- Honor tiles: single character -->
-      <template v-if="tile.type === 'feng' || tile.type === 'jian'">
-        <span class="tile__honor" :class="`tile--${tile.type}-${tile.value}`">{{ honorChar }}</span>
-      </template>
-      <!-- Number tiles: two-line display -->
-      <template v-else>
-        <span class="tile__num" :class="`tile--${tile.type}`">{{ numChar }}</span>
-        <span class="tile__suit" :class="`tile--${tile.type}`">{{ suitChar }}</span>
-      </template>
-    </template>
+    <div v-if="!faceDown && tile" class="tile__face" v-html="tileSvg"></div>
     <span v-else class="tile__back">&#x1F02B;</span>
   </div>
 </template>
@@ -27,11 +17,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Tile, TileType } from '../engine/types';
-
-const NUM_CHARS: Record<number, string> = {
-  1: '一', 2: '二', 3: '三', 4: '四', 5: '五',
-  6: '六', 7: '七', 8: '八', 9: '九',
-};
+import { getTileSVG } from '../utils/tileGraphics';
 
 const props = withDefaults(defineProps<{
   tile: Tile | null;
@@ -50,30 +36,9 @@ defineEmits<{
   click: [tile: Tile];
 }>();
 
-const numChar = computed(() => {
+const tileSvg = computed(() => {
   if (!props.tile) return '';
-  return NUM_CHARS[props.tile.value] ?? '';
-});
-
-const suitChar = computed(() => {
-  if (!props.tile) return '';
-  switch (props.tile.type) {
-    case 'wan': return '万';
-    case 'tiao': return '条';
-    case 'tong': return '筒';
-    default: return '';
-  }
-});
-
-const honorChar = computed(() => {
-  if (!props.tile) return '';
-  switch (props.tile.type) {
-    case 'feng':
-      return ['东', '南', '西', '北'][props.tile.value - 1];
-    case 'jian':
-      return ['中', '发', '白'][props.tile.value - 1];
-    default: return '';
-  }
+  return getTileSVG(props.tile);
 });
 
 const isGhost = computed(() => {
@@ -90,15 +55,13 @@ const isGhost = computed(() => {
   border: 1px solid #999;
   background: #fffef5;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
   cursor: pointer;
   user-select: none;
   transition: transform 0.15s, box-shadow 0.15s;
   flex-shrink: 0;
-  padding: 4px 2px;
+  overflow: hidden;
 }
 .tile:hover {
   transform: translateY(-4px);
@@ -123,39 +86,11 @@ const isGhost = computed(() => {
   border: 2px solid #ffd700;
   box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
 }
-
-/* Number tiles */
-.tile__num {
-  font-size: 18px;
-  font-weight: bold;
-  line-height: 1;
+.tile__face {
+  width: 100%;
+  height: 100%;
+  padding: 2px;
 }
-.tile__suit {
-  font-size: 10px;
-  font-weight: bold;
-  line-height: 1;
-}
-.tile--wan { color: #cc0000; }
-.tile--tiao { color: #008800; }
-.tile--tong { color: #0044cc; }
-
-/* Honor tiles */
-.tile__honor {
-  font-size: 20px;
-  font-weight: bold;
-  line-height: 1;
-}
-/* Wind tiles */
-.tile--feng-1, .tile--feng-2, .tile--feng-3, .tile--feng-4 { color: #333; }
-/* Dragon tiles */
-.tile--jian-1 { color: #cc0000; }  /* 中 red */
-.tile--jian-2 { color: #008800; }  /* 发 green */
-.tile--jian-3 {                    /* 白 outlined */
-  color: transparent;
-  -webkit-text-stroke: 1px #666;
-  text-stroke: 1px #666;
-}
-
 .tile__back {
   font-size: 20px;
 }
