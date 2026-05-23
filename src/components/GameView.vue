@@ -11,7 +11,7 @@
         :melds="gameState.melds"
         :discards="gameState.discards"
         :selected-tile-id="selectedTile?.id ?? null"
-        :drawn-tile-id="drawnTileId"
+        :highlighted-tile-ids="highlightedTileIds"
         :ghost-type="gameState.ghostType"
         :ghost-value="gameState.ghostValue"
         :ghost-name="ghostName"
@@ -67,7 +67,7 @@ const {
   gameLog,
   canHuNow,
   jiaGangOptions,
-  drawnTileId,
+  highlightedTileIds,
   currentPlayerName,
   ghostName,
   startGameAndAutoPlay,

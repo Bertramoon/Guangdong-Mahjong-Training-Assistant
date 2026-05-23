@@ -20,7 +20,7 @@ export function useGame() {
   const canJiaGangNow = ref(false);
   const canAnGangNow = ref(false);
   const jiaGangOptions = ref<{ type: TileType; value: number }[]>([]);
-  const drawnTileId = ref<number | null>(null);
+  const highlightedTileIds = ref<number[]>([]);
 
   const currentPlayerName = computed(() => {
     if (!gameState.value) return '';
@@ -84,6 +84,7 @@ export function useGame() {
     canJiaGangNow.value = false;
     canAnGangNow.value = false;
     jiaGangOptions.value = [];
+    highlightedTileIds.value = [];
     addLog(`新游戏开始！鬼牌: ${getTileName({ type: game.ghostType, value: game.ghostValue, id: -1 })}`);
 
     updateActions(game);
@@ -109,7 +110,7 @@ export function useGame() {
     addLog(`你打出: ${getTileName(tile)}`);
     gameState.value = next;
     selectedTile.value = null;
-    drawnTileId.value = null;
+    highlightedTileIds.value = [];
 
     // After player discards, robots may react
     if (next.phase === 'reaction') {
@@ -151,6 +152,7 @@ export function useGame() {
     const next = passReaction(game, 0);
     addLog('你选择过牌');
     gameState.value = next;
+    highlightedTileIds.value = [];
 
     // After passing, if robot's turn, auto-play
     if (next.currentPlayer !== 0) {
@@ -262,6 +264,9 @@ export function useGame() {
       // Check if human player can react to this discard
       if (canPeng(afterDiscard.hands[0], tile) || canMingGang(afterDiscard.hands[0], tile)) {
         gameState.value = { ...afterDiscard, phase: 'reaction' };
+        highlightedTileIds.value = afterDiscard.hands[0]
+          .filter(t => t.type === tile.type && t.value === tile.value)
+          .map(t => t.id);
         return; // Stop auto-play, wait for human decision
       }
 
@@ -321,7 +326,7 @@ export function useGame() {
       const oldIds = new Set(gameState.value.hands[0].map(t => t.id));
       const next = drawPhase(gameState.value);
       const newTile = next.hands[0].find(t => !oldIds.has(t.id));
-      drawnTileId.value = newTile?.id ?? null;
+      highlightedTileIds.value = newTile ? [newTile.id] : [];
       addLog('你摸牌');
       gameState.value = next;
     }
@@ -355,7 +360,7 @@ export function useGame() {
     canJiaGangNow,
     canAnGangNow,
     jiaGangOptions,
-    drawnTileId,
+    highlightedTileIds,
     currentPlayerName,
     playerHand,
     playerMelds,
