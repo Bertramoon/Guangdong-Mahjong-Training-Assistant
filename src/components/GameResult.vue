@@ -3,7 +3,10 @@
     <div class="result-card">
       <h2 class="result-title">{{ titleText }}</h2>
       <p class="result-detail">{{ detailText }}</p>
-      <button class="btn" @click="$emit('new-game')">再来一局</button>
+      <div class="result-actions">
+        <button class="btn btn-primary" @click="$emit('view-details')">查看对局情况</button>
+        <button class="btn btn-secondary" @click="$emit('new-game')">再来一局</button>
+      </div>
     </div>
   </div>
 </template>
@@ -19,6 +22,7 @@ const props = defineProps<{
 
 defineEmits<{
   'new-game': [];
+  'view-details': [];
 }>();
 
 const titleText = computed(() => {
@@ -57,14 +61,26 @@ const detailText = computed(() => `总局数: ${props.turnCount} 轮`);
   color: #666;
   margin-bottom: 24px;
 }
+.result-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
 .btn {
   padding: 10px 32px;
   border: none;
   border-radius: 6px;
   font-size: 16px;
   cursor: pointer;
+}
+.btn-primary {
   background: #3388cc;
   color: #fff;
 }
-.btn:hover { background: #2277bb; }
+.btn-primary:hover { background: #2277bb; }
+.btn-secondary {
+  background: #666;
+  color: #fff;
+}
+.btn-secondary:hover { background: #555; }
 </style>
