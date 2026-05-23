@@ -43,8 +43,8 @@ export function getTileSVG(tile: Tile): string {
       }
       break;
     case 'wan':
-      body = `<text x="22" y="28" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="bold" fill="#cc1111" font-family="SimSun,serif">${NUM_CHARS[tile.value - 1]}</text>`
-        + `<text x="22" y="48" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="bold" fill="#cc1111" font-family="SimSun,serif">万</text>`;
+      body = `<text x="22" y="24" text-anchor="middle" dominant-baseline="central" font-size="22" font-weight="bold" fill="#cc1111" font-family="SimSun,serif">${NUM_CHARS[tile.value - 1]}</text>`
+        + `<text x="22" y="44" text-anchor="middle" dominant-baseline="central" font-size="20" font-weight="bold" fill="#cc1111" font-family="SimSun,serif">万</text>`;
       break;
     case 'feng': {
       const chars = '东南西北';
