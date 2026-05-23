@@ -151,9 +151,20 @@ export function useGame() {
   function playerMingGang() {
     const game = gameState.value;
     if (!game || !game.lastDiscard || game.phase !== 'reaction') return;
-    const next = mingGangPhase(game, 0);
+    const afterGang = mingGangPhase(game, 0);
     addLog(`你明杠了: ${getTileName(game.lastDiscard)}`);
-    gameState.value = next;
+    // Gang: draw replacement tile then enter discard phase
+    if (afterGang.phase === 'draw') {
+      const oldIds = new Set(afterGang.hands[0].map(t => t.id));
+      const afterDraw = drawPhase(afterGang);
+      const newTile = afterDraw.hands[0].find(t => !oldIds.has(t.id));
+      highlightedTileIds.value = newTile ? [newTile.id] : [];
+      addLog('你摸牌');
+      gameState.value = afterDraw;
+      updateActions(afterDraw);
+    } else {
+      gameState.value = afterGang;
+    }
   }
 
   function playerJiaGang(type: TileType, value: number) {
