@@ -173,10 +173,7 @@ export function useGame() {
     gameState.value = next;
     highlightedTileIds.value = [];
 
-    // After passing, if robot's turn, auto-play
-    if (next.currentPlayer !== 0) {
-      autoPlayUntilPlayer();
-    }
+    autoPlayUntilPlayer();
   }
 
   function playerHu() {
