@@ -5,6 +5,7 @@ import {
   robotShouldPeng,
   robotShouldMingGang,
   robotShouldJiaGang,
+  robotShouldAnGang,
   findSingles,
 } from '../../src/robot/robot';
 import type { Tile, Meld } from '../../src/engine/types';
@@ -48,6 +49,8 @@ describe('robotDiscard', () => {
     ];
     const discard = robotDiscard(hand, 'wan', 1);
     expect(discard).toBeDefined();
+    // Should not be a ghost tile (wan value 1)
+    expect(discard.type === 'wan' && discard.value === 1).toBe(false);
   });
 
   it('全是搭子时丢孤张', () => {
@@ -95,5 +98,17 @@ describe('robotShouldJiaGang', () => {
       tiles: [h('wan', 1, 0), h('wan', 1, 1), h('wan', 1, 2)],
     }];
     expect(robotShouldJiaGang(hand, melds)).toBe(true);
+  });
+});
+
+describe('robotShouldAnGang', () => {
+  it('有4张可暗杠时返回true', () => {
+    const hand = [h('wan', 1, 0), h('wan', 1, 1), h('wan', 1, 2), h('wan', 1, 3)];
+    expect(robotShouldAnGang(hand)).toBe(true);
+  });
+
+  it('不足4张返回false', () => {
+    const hand = [h('wan', 1, 0), h('wan', 1, 1), h('wan', 1, 2)];
+    expect(robotShouldAnGang(hand)).toBe(false);
   });
 });
