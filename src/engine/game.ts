@@ -1,8 +1,8 @@
-import type { GameState, Tile } from './types';
+import type { GameState, Tile, TileType } from './types';
 import { createAllTiles } from './tile';
 import { shuffleWall, drawInitialHands, drawTile } from './wall';
 import { sortHand } from './hand';
-import { canPeng, canMingGang, createPeng, createMingGang, createAnGang } from './meld';
+import { canPeng, canMingGang, createPeng, createMingGang, createAnGang, createJiaGang } from './meld';
 
 export function createGame(dealerIndex: number = 0): GameState {
   const allTiles = createAllTiles();
@@ -151,6 +151,40 @@ export function anGangPhase(game: GameState, type: string, value: number): GameS
   const finalHands = newHands.map((h, i) =>
     i === game.currentPlayer && tile ? sortHand([...h, tile]) : [...h],
   );
+  return {
+    ...game,
+    hands: finalHands,
+    melds: newMelds,
+    wall,
+    phase: 'discard',
+    lastDiscard: null,
+  };
+}
+
+/** 执行加杠（摸牌后，手中有第4张且已碰过该牌） */
+export function jiaGangPhase(game: GameState, type: string, value: number): GameState {
+  const player = game.currentPlayer;
+  const result = createJiaGang(
+    game.hands[player],
+    game.melds[player],
+    type as TileType,
+    value,
+  );
+  if (!result) throw new Error('Cannot jia_gang');
+
+  const newHands = game.hands.map((h, i) =>
+    i === player ? result.hand : [...h],
+  );
+  const newMelds = game.melds.map((m, i) =>
+    i === player ? result.melds : [...m],
+  );
+
+  // 加杠后补牌
+  const { tile, wall } = drawTile(game.wall);
+  const finalHands = newHands.map((h, i) =>
+    i === player && tile ? sortHand([...h, tile]) : [...h],
+  );
+
   return {
     ...game,
     hands: finalHands,

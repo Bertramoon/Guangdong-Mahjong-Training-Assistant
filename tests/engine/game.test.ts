@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createGame, drawPhase, discardPhase, pengPhase } from '../../src/engine/game';
+import { createGame, drawPhase, discardPhase, pengPhase, jiaGangPhase } from '../../src/engine/game';
 
 describe('createGame', () => {
   it('创建新游戏，庄家14张，其余13张', () => {
@@ -93,5 +93,41 @@ describe('pengPhase', () => {
     expect(next.melds[1][0].type).toBe('peng');
     expect(next.phase).toBe('discard');
     expect(next.currentPlayer).toBe(1);
+  });
+});
+
+describe('jiaGangPhase', () => {
+  it('加杠后手牌-1，副露更新，补牌并进入出牌阶段', () => {
+    const game = createGame(0);
+    // 手动构造场景：玩家有 peng 的一万 + 手中第4张一万
+    game.melds[0] = [{
+      type: 'peng',
+      tiles: [
+        { type: 'wan', value: 1, id: 100 },
+        { type: 'wan', value: 1, id: 101 },
+        { type: 'wan', value: 1, id: 102 },
+      ],
+    }];
+    game.hands[0] = [
+      { type: 'wan', value: 1, id: 103 },
+      { type: 'tiao', value: 2, id: 200 },
+    ];
+    game.phase = 'discard';
+    game.currentPlayer = 0;
+
+    const next = jiaGangPhase(game, 'wan', 1);
+    expect(next.hands[0].length).toBe(2); // 剩1张+补1张
+    expect(next.melds[0].length).toBe(1);
+    expect(next.melds[0][0].type).toBe('jia_gang');
+    expect(next.melds[0][0].tiles.length).toBe(4);
+    expect(next.phase).toBe('discard');
+  });
+
+  it('无对应 peng 时报错', () => {
+    const game = createGame(0);
+    game.phase = 'discard';
+    game.melds[0] = [];
+    game.hands[0] = [{ type: 'wan', value: 1, id: 103 }];
+    expect(() => jiaGangPhase(game, 'wan', 1)).toThrow('Cannot jia_gang');
   });
 });
