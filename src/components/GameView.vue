@@ -6,6 +6,11 @@
     </div>
 
     <div v-else class="game-container">
+      <div class="top-bar">
+        <span class="ghost-badge">鬼牌: {{ ghostName }}</span>
+        <button class="settings-btn" @click="showSettings = true">⚙ 设置</button>
+      </div>
+
       <GameBoard
         :hands="gameState.hands"
         :melds="gameState.melds"
@@ -41,6 +46,13 @@
         @pass="playerPass"
       />
 
+      <AIAnalysisPanel
+        :result="aiResult"
+        :loading="aiLoading"
+        :error="aiError"
+        @analyze="analyzeCurrentGame"
+      />
+
       <GameResult
         :show="gameState.phase === 'hu' || gameState.phase === 'draw_end'"
         :winner="gameState.winner"
@@ -52,12 +64,27 @@
         <div v-for="(msg, i) in gameLog.slice(-8)" :key="i" class="log-line">{{ msg }}</div>
       </div>
     </div>
+
+    <SettingsModal
+      :show="showSettings"
+      :config="aiConfig"
+      :settings="appSettings"
+      @close="showSettings = false"
+      @save="onSaveSettings"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue';
 import { useGame } from '../composables/useGame';
 import { canPeng, canMingGang } from '../engine/meld';
+import AIAnalysisPanel from './AIAnalysisPanel.vue';
+import SettingsModal from './SettingsModal.vue';
+import { analyzeGame, type AnalysisResult } from '../ai/analyzer';
+import { loadAIConfig, saveAIConfig, loadSettings, saveSettings, saveGameSummary } from '../storage/store';
+import type { AIProviderConfig } from '../ai/provider';
+import type { AppSettings } from '../storage/store';
 import GameBoard from './GameBoard.vue';
 import ActionPanel from './ActionPanel.vue';
 import GameResult from './GameResult.vue';
@@ -81,6 +108,43 @@ const {
   playerPass,
   playerHu,
 } = useGame();
+
+const aiResult = ref<AnalysisResult | null>(null);
+const aiLoading = ref(false);
+const aiError = ref('');
+const showSettings = ref(false);
+const aiConfig = ref<AIProviderConfig>(loadAIConfig());
+const appSettings = ref<AppSettings>(loadSettings());
+
+async function analyzeCurrentGame() {
+  if (!gameState.value || aiLoading.value) return;
+  aiLoading.value = true;
+  aiError.value = '';
+  aiResult.value = null;
+  const result = await analyzeGame(aiConfig.value, gameState.value, 0);
+  aiResult.value = result;
+  if (result.error) aiError.value = result.error;
+  aiLoading.value = false;
+}
+
+function onSaveSettings(config: AIProviderConfig, settings: AppSettings) {
+  aiConfig.value = config;
+  appSettings.value = settings;
+  saveAIConfig(config);
+  saveSettings(settings);
+}
+
+watch(() => gameState.value?.phase, (phase) => {
+  if (phase === 'hu' || phase === 'draw_end') {
+    saveGameSummary({
+      date: new Date().toISOString(),
+      winner: gameState.value?.winner ?? null,
+      turns: gameState.value?.turnCount ?? 0,
+      ghostType: gameState.value?.ghostType ?? 'wan',
+      ghostValue: gameState.value?.ghostValue ?? 1,
+    });
+  }
+});
 </script>
 
 <style scoped>
@@ -116,6 +180,31 @@ const {
   align-items: center;
   gap: 12px;
 }
+.top-bar {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8px;
+}
+.ghost-badge {
+  font-size: 14px;
+  color: #ffd700;
+  background: rgba(0,0,0,0.3);
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+.settings-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+.settings-btn:hover { background: rgba(255,255,255,0.25); }
 .log-panel {
   width: 100%;
   max-width: 600px;
