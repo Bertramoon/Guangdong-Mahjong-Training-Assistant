@@ -8,7 +8,10 @@
     <div v-else class="game-container">
       <div class="top-bar">
         <span class="ghost-badge">鬼牌: {{ ghostName }}</span>
-        <button class="settings-btn" @click="showSettings = true">⚙ 设置</button>
+        <div class="top-bar-actions">
+          <button v-if="revealMode" class="btn-new-game" @click="handleNewGame">再来一局</button>
+          <button class="settings-btn" @click="showSettings = true">⚙ 设置</button>
+        </div>
       </div>
 
       <GameBoard
@@ -39,11 +42,13 @@
         :show-pass="gameState.phase === 'reaction' && gameState.lastDiscardPlayer !== 0"
         :show-discard="gameState.currentPlayer === 0 && gameState.phase === 'discard'"
         :jia-gang-options="jiaGangOptions"
+        :an-gang-options="anGangOptions"
         :selected-tile="selectedTile"
         @discard="playerDiscard"
         @peng="playerPeng"
         @ming-gang="playerMingGang"
         @jia-gang="(t, v) => playerJiaGang(t, v)"
+        @an-gang="(t, v) => playerAnGang(t, v)"
         @hu="playerHu"
         @pass="playerPass"
       />
@@ -98,6 +103,7 @@ const {
   gameLog,
   canHuNow,
   jiaGangOptions,
+  anGangOptions,
   highlightedTileIds,
   matchedTileIds,
   currentPlayerName,
@@ -108,6 +114,7 @@ const {
   playerPeng,
   playerMingGang,
   playerJiaGang,
+  playerAnGang,
   playerPass,
   playerHu,
 } = useGame();
@@ -214,6 +221,21 @@ watch(() => gameState.value?.phase, (phase) => {
   font-size: 13px;
 }
 .settings-btn:hover { background: rgba(255,255,255,0.25); }
+.top-bar-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.btn-new-game {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #3388cc;
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn-new-game:hover { background: #2277bb; }
 .log-panel {
   width: 100%;
   max-width: 600px;

@@ -15,6 +15,12 @@
       加杠: {{ getTileName({ type: opt.type, value: opt.value, id: -1 }) }}
     </button>
 
+    <!-- An gang options -->
+    <button v-for="opt in anGangOptions" :key="`ag-${opt.type}-${opt.value}`"
+      class="btn btn--gang" @click="$emit('an-gang', opt.type, opt.value)">
+      暗杠: {{ getTileName({ type: opt.type, value: opt.value, id: -1 }) }}
+    </button>
+
     <!-- Hu button -->
     <button v-if="canHu" class="btn btn--hu" @click="$emit('hu')">自摸胡！</button>
 
@@ -38,6 +44,7 @@ const props = defineProps<{
   showPass: boolean;
   showDiscard: boolean;
   jiaGangOptions: { type: TileType; value: number }[];
+  anGangOptions: { type: TileType; value: number }[];
   selectedTile: Tile | null;
 }>();
 
@@ -46,13 +53,14 @@ const emit = defineEmits<{
   peng: [];
   'ming-gang': [];
   'jia-gang': [type: TileType, value: number];
+  'an-gang': [type: TileType, value: number];
   hu: [];
   pass: [];
 }>();
 
 const hasActions = computed(() => {
   return props.canHu || props.showPeng || props.showMingGang || props.showPass ||
-         props.showDiscard || props.jiaGangOptions.length > 0;
+         props.showDiscard || props.jiaGangOptions.length > 0 || props.anGangOptions.length > 0;
 });
 </script>
 

@@ -2,12 +2,12 @@ import { ref, computed } from 'vue';
 import type { GameState, Tile, TileType } from '../engine/types';
 import {
   createGame, drawPhase, discardPhase,
-  pengPhase, mingGangPhase, jiaGangPhase,
+  pengPhase, mingGangPhase, jiaGangPhase, anGangPhase,
   checkReactions, passReaction, nextPlayerAfter,
 } from '../engine/game';
 import { isSelfHu } from '../engine/hu';
 import { getTileName } from '../engine/tile';
-import { canJiaGang, getJiaGangCandidates, canAnGang, canPeng, canMingGang } from '../engine/meld';
+import { canJiaGang, getJiaGangCandidates, canAnGang, getAnGangCandidates, canPeng, canMingGang } from '../engine/meld';
 import { robotDiscard, robotShouldPeng, robotShouldMingGang, robotShouldJiaGang } from '../robot/robot';
 
 export function useGame() {
@@ -20,6 +20,7 @@ export function useGame() {
   const canJiaGangNow = ref(false);
   const canAnGangNow = ref(false);
   const jiaGangOptions = ref<{ type: TileType; value: number }[]>([]);
+  const anGangOptions = ref<{ type: TileType; value: number }[]>([]);
   const highlightedTileIds = ref<number[]>([]);
 
   const currentPlayerName = computed(() => {
@@ -82,10 +83,12 @@ export function useGame() {
       canJiaGangNow.value = false;
       canAnGangNow.value = false;
       jiaGangOptions.value = [];
+      anGangOptions.value = [];
       return;
     }
     canHuNow.value = checkHu && isSelfHu(game.hands[0], game.ghostType, game.ghostValue);
-    canAnGangNow.value = canAnGang(game.hands[0]);
+    anGangOptions.value = getAnGangCandidates(game.hands[0]);
+    canAnGangNow.value = anGangOptions.value.length > 0;
     jiaGangOptions.value = getJiaGangCandidates(game.hands[0], game.melds[0]);
     canJiaGangNow.value = jiaGangOptions.value.length > 0;
   }
@@ -103,6 +106,7 @@ export function useGame() {
     canJiaGangNow.value = false;
     canAnGangNow.value = false;
     jiaGangOptions.value = [];
+    anGangOptions.value = [];
     highlightedTileIds.value = [];
     addLog(`新游戏开始！鬼牌: ${getTileName({ type: game.ghostType, value: game.ghostValue, id: -1 })}`);
 
@@ -172,6 +176,18 @@ export function useGame() {
     if (!game || game.currentPlayer !== 0) return;
     const next = jiaGangPhase(game, type, value);
     addLog(`你加杠了: ${getTileName({ type, value, id: -1 })}`);
+    gameState.value = next;
+    updateActions(next);
+  }
+
+  function playerAnGang(type: TileType, value: number) {
+    const game = gameState.value;
+    if (!game || game.currentPlayer !== 0 || game.phase !== 'discard') return;
+    const oldIds = new Set(game.hands[0].map(t => t.id));
+    const next = anGangPhase(game, type, value);
+    addLog(`你暗杠了: ${getTileName({ type, value, id: -1 })}`);
+    const newTile = next.hands[0].find(t => !oldIds.has(t.id));
+    highlightedTileIds.value = newTile ? [newTile.id] : [];
     gameState.value = next;
     updateActions(next);
   }
@@ -379,6 +395,7 @@ export function useGame() {
     canJiaGangNow,
     canAnGangNow,
     jiaGangOptions,
+    anGangOptions,
     highlightedTileIds,
     matchedTileIds,
     currentPlayerName,
@@ -393,6 +410,7 @@ export function useGame() {
     playerPeng,
     playerMingGang,
     playerJiaGang,
+    playerAnGang,
     playerPass,
     playerHu,
     addLog,

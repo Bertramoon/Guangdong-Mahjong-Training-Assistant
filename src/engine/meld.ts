@@ -16,7 +16,23 @@ export function canMingGang(hand: Tile[], discard: Tile): boolean {
 }
 
 export function canAnGang(hand: Tile[]): boolean {
-  return getAnGangTiles(hand).length > 0;
+  return getAnGangCandidates(hand).length > 0;
+}
+
+export function getAnGangCandidates(hand: Tile[]): { type: TileType; value: number }[] {
+  const counted = new Map<string, number>();
+  for (const t of hand) {
+    const key = `${t.type}-${t.value}`;
+    counted.set(key, (counted.get(key) || 0) + 1);
+  }
+  const result: { type: TileType; value: number }[] = [];
+  for (const [key, count] of counted) {
+    if (count >= 4) {
+      const [type, val] = key.split('-');
+      result.push({ type: type as TileType, value: Number(val) });
+    }
+  }
+  return result;
 }
 
 export function createPeng(
@@ -136,17 +152,3 @@ export function createJiaGang(
   return { hand: sortHand(rm.hand), melds: newMelds };
 }
 
-function getAnGangTiles(hand: Tile[]): TileType[] {
-  const counted = new Map<string, number>();
-  for (const t of hand) {
-    const key = `${t.type}-${t.value}`;
-    counted.set(key, (counted.get(key) || 0) + 1);
-  }
-  const result: TileType[] = [];
-  for (const [key, count] of counted) {
-    if (count >= 4) {
-      result.push(key.split('-')[0] as TileType);
-    }
-  }
-  return result;
-}
