@@ -24,6 +24,8 @@
         :current-player="gameState.currentPlayer"
         :phase="gameState.phase"
         :turn-text="`轮次: ${gameState.turnCount} | 当前: ${currentPlayerName}`"
+        :reveal-mode="revealMode"
+        :wall-tiles="revealMode ? gameState.wall : undefined"
         @select-tile="selectTile"
       />
 
@@ -54,10 +56,11 @@
       />
 
       <GameResult
-        :show="gameState.phase === 'hu' || gameState.phase === 'draw_end'"
+        :show="(gameState.phase === 'hu' || gameState.phase === 'draw_end') && !revealMode"
         :winner="gameState.winner"
         :turn-count="gameState.turnCount"
-        @new-game="startGameAndAutoPlay"
+        @new-game="handleNewGame"
+        @view-details="revealMode = true"
       />
 
       <div class="log-panel">
@@ -113,6 +116,7 @@ const aiResult = ref<AnalysisResult | null>(null);
 const aiLoading = ref(false);
 const aiError = ref('');
 const showSettings = ref(false);
+const revealMode = ref(false);
 const aiConfig = ref<AIProviderConfig>(loadAIConfig());
 const appSettings = ref<AppSettings>(loadSettings());
 
@@ -132,6 +136,11 @@ function onSaveSettings(config: AIProviderConfig, settings: AppSettings) {
   appSettings.value = settings;
   saveAIConfig(config);
   saveSettings(settings);
+}
+
+function handleNewGame() {
+  revealMode.value = false;
+  startGameAndAutoPlay();
 }
 
 watch(() => gameState.value?.phase, (phase) => {
