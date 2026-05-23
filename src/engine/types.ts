@@ -9,7 +9,7 @@ export interface Tile {
 }
 
 /** 副露类型 */
-export type MeldType = 'peng' | 'ming_gang' | 'an_gang';
+export type MeldType = 'peng' | 'ming_gang' | 'an_gang' | 'jia_gang';
 
 /** 副露（碰/杠） */
 export interface Meld {

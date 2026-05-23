@@ -90,6 +90,52 @@ export function getPengTiles(hand: Tile[]): { type: TileType; value: number; cou
   return result;
 }
 
+/** 检查是否可以加杠（手中有第4张，且已有 peng 的副露） */
+export function canJiaGang(hand: Tile[], melds: Meld[]): boolean {
+  return getJiaGangCandidates(hand, melds).length > 0;
+}
+
+/** 获取所有可加杠的候选 */
+export function getJiaGangCandidates(
+  hand: Tile[],
+  melds: Meld[],
+): { type: TileType; value: number }[] {
+  const result: { type: TileType; value: number }[] = [];
+  for (const meld of melds) {
+    if (meld.type !== 'peng') continue;
+    const t = meld.tiles[0];
+    const inHand = hand.some(h => h.type === t.type && h.value === t.value);
+    if (inHand) {
+      result.push({ type: t.type, value: t.value });
+    }
+  }
+  return result;
+}
+
+/** 执行加杠 */
+export function createJiaGang(
+  hand: Tile[],
+  melds: Meld[],
+  type: TileType,
+  value: number,
+): { hand: Tile[]; melds: Meld[] } | null {
+  const meldIdx = melds.findIndex(
+    m => m.type === 'peng' && m.tiles[0].type === type && m.tiles[0].value === value,
+  );
+  if (meldIdx === -1) return null;
+
+  const rm = removeTile(hand, type, value);
+  if (!rm) return null;
+
+  const newMelds = [...melds];
+  newMelds[meldIdx] = {
+    type: 'jia_gang',
+    tiles: [...melds[meldIdx].tiles, rm.removed],
+  };
+
+  return { hand: sortHand(rm.hand), melds: newMelds };
+}
+
 function getAnGangTiles(hand: Tile[]): TileType[] {
   const counted = new Map<string, number>();
   for (const t of hand) {
