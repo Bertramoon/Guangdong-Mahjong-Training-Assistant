@@ -7,7 +7,7 @@ import {
 } from '../engine/game';
 import { isSelfHu } from '../engine/hu';
 import { getTileName } from '../engine/tile';
-import { canJiaGang, getJiaGangCandidates, canAnGang } from '../engine/meld';
+import { canJiaGang, getJiaGangCandidates, canAnGang, canPeng, canMingGang } from '../engine/meld';
 import { robotDiscard, robotShouldPeng, robotShouldMingGang, robotShouldJiaGang } from '../robot/robot';
 
 export function useGame() {
@@ -260,13 +260,50 @@ export function useGame() {
       const tile = robotDiscard(afterDraw.hands[player], afterDraw.ghostType, afterDraw.ghostValue);
       const afterDiscard = discardPhase(afterDraw, tile);
       addLog(`机器人${player}打出: ${getTileName(tile)}`);
+
+      // Check if human player can react to this discard
+      if (canPeng(afterDiscard.hands[0], tile) || canMingGang(afterDiscard.hands[0], tile)) {
+        gameState.value = { ...afterDiscard, phase: 'reaction' };
+        return; // Stop auto-play, wait for human decision
+      }
+
+      // Check if other robots can react
+      let g: GameState = afterDiscard;
+      for (let i = 1; i <= 3; i++) {
+        if (i === player) continue;
+        if (robotShouldMingGang(g.hands[i], tile)) {
+          g = mingGangPhase(g, i);
+          addLog(`机器人${i}明杠了: ${getTileName(tile)}`);
+          gameState.value = g;
+          if (g.phase === 'draw') {
+            const rd = drawPhase(g);
+            gameState.value = rd;
+            if (rd.phase === 'discard') {
+              const rdTile = robotDiscard(rd.hands[i], rd.ghostType, rd.ghostValue);
+              g = discardPhase(rd, rdTile);
+              addLog(`机器人${i}打出: ${getTileName(rdTile)}`);
+              gameState.value = g;
+            }
+          }
+          return;
+        }
+        if (robotShouldPeng(g.hands[i], tile)) {
+          g = pengPhase(g, i);
+          addLog(`机器人${i}碰了: ${getTileName(tile)}`);
+          gameState.value = g;
+          if (g.phase === 'discard') {
+            const rdTile = robotDiscard(g.hands[i], g.ghostType, g.ghostValue);
+            g = discardPhase(g, rdTile);
+            addLog(`机器人${i}打出: ${getTileName(rdTile)}`);
+            gameState.value = g;
+          }
+          return;
+        }
+      }
+
+      // No reactions
       gameState.value = afterDiscard;
       await delay(300);
-
-      // Handle reactions if triggered
-      if (afterDiscard.phase === 'reaction') {
-        await handleRobotReactions(afterDiscard);
-      }
     } finally {
       isProcessing.value = false;
     }
