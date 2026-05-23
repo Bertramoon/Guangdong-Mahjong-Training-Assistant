@@ -111,10 +111,14 @@ export function pengPhase(game: GameState, playerIndex: number): GameState {
   const { hand, meld } = createPeng(game.hands[playerIndex], game.lastDiscard);
   const newHands = game.hands.map((h, i) => (i === playerIndex ? hand : [...h]));
   const newMelds = game.melds.map((m, i) => (i === playerIndex ? [...m, meld] : [...m]));
+  const newDiscards = game.discards.map((d, i) =>
+    i === game.lastDiscardPlayer ? d.slice(0, -1) : [...d],
+  );
   return {
     ...game,
     hands: newHands,
     melds: newMelds,
+    discards: newDiscards,
     phase: 'discard',
     currentPlayer: playerIndex,
     lastDiscard: null,
@@ -127,10 +131,14 @@ export function mingGangPhase(game: GameState, playerIndex: number): GameState {
   const { hand, meld } = createMingGang(game.hands[playerIndex], game.lastDiscard);
   const newHands = game.hands.map((h, i) => (i === playerIndex ? hand : [...h]));
   const newMelds = game.melds.map((m, i) => (i === playerIndex ? [...m, meld] : [...m]));
+  const newDiscards = game.discards.map((d, i) =>
+    i === game.lastDiscardPlayer ? d.slice(0, -1) : [...d],
+  );
   return {
     ...game,
     hands: newHands,
     melds: newMelds,
+    discards: newDiscards,
     phase: 'draw',
     currentPlayer: playerIndex,
     lastDiscard: null,
