@@ -2,7 +2,7 @@
   <div class="other-player">
     <div class="other-name">{{ name }}</div>
     <div class="other-melds">
-      <MeldArea :melds="melds" :matched-tile-ids="matchedTileIds" :ghost-type="ghostType" :ghost-value="ghostValue" :direction="position === 'left' || position === 'right' ? 'column' : 'row'" />
+      <MeldArea :melds="melds" :matched-tile-ids="matchedTileIds" :ghost-type="ghostType" :ghost-value="ghostValue" :direction="meldDirection" />
     </div>
     <div class="other-hand">
       <TileComponent v-for="i in handCount" :key="i" :tile="null" :face-down="true" />
@@ -14,11 +14,12 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { Tile, Meld, TileType } from '../engine/types';
 import TileComponent from './TileComponent.vue';
 import MeldArea from './MeldArea.vue';
 
-defineProps<{
+const props = defineProps<{
   name: string;
   position: 'left' | 'right' | 'top';
   handCount: number;
@@ -28,6 +29,10 @@ defineProps<{
   ghostType: TileType;
   ghostValue: number;
 }>();
+
+const meldDirection = computed(() =>
+  props.position === 'left' || props.position === 'right' ? 'column' : 'row'
+);
 </script>
 
 <style scoped>
