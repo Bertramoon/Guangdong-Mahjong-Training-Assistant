@@ -114,9 +114,7 @@ export function useGame() {
     // After player discards, robots may react
     if (next.phase === 'reaction') {
       handleRobotReactions(next).then(() => {
-        if (gameState.value && gameState.value.currentPlayer !== 0 && gameState.value.phase === 'draw') {
-          autoPlayUntilPlayer();
-        }
+        autoPlayUntilPlayer();
       });
     }
   }
