@@ -280,6 +280,11 @@ export function useGame() {
       await executeRobotTurn();
       await delay(300);
     }
+    if (gameState.value && gameState.value.currentPlayer === 0 && gameState.value.phase === 'draw') {
+      const next = drawPhase(gameState.value);
+      addLog('你摸牌');
+      gameState.value = next;
+    }
     if (gameState.value) {
       updateActions(gameState.value);
     }
