@@ -5,7 +5,12 @@
       <MeldArea :melds="melds" :matched-tile-ids="matchedTileIds" :ghost-type="ghostType" :ghost-value="ghostValue" :direction="meldDirection" />
     </div>
     <div class="other-hand">
-      <TileComponent v-for="i in handCount" :key="i" :tile="null" :face-down="true" />
+      <template v-if="handTiles && handTiles.length > 0">
+        <TileComponent v-for="tile in handTiles" :key="tile.id" :tile="tile" :ghost-type="ghostType" :ghost-value="ghostValue" />
+      </template>
+      <template v-else>
+        <TileComponent v-for="i in handCount" :key="i" :tile="null" :face-down="true" />
+      </template>
     </div>
     <div class="other-discards" v-if="discards.length > 0">
       <TileComponent v-for="(tile, i) in discards.slice(-6)" :key="i" :tile="tile" :highlighted="matchedTileIds.includes(tile.id)" />
@@ -23,6 +28,7 @@ const props = defineProps<{
   name: string;
   position: 'left' | 'right' | 'top';
   handCount: number;
+  handTiles?: Tile[];
   melds: Meld[];
   discards: Tile[];
   matchedTileIds: number[];
