@@ -1,0 +1,110 @@
+# 广东麻将训练助手
+
+一款基于浏览器的广东推倒胡麻将练习工具，纯前端运行，无需后端服务。支持 AI 牌局分析，帮助你在实战中提升牌技。
+
+![游戏主界面](docs/screenshots/game-board.png)
+*图：四人对战主界面*
+
+---
+
+## 项目亮点
+
+### SVG麻将牌面渲染
+
+所有牌面使用 SVG 矢量图形绘制，包括筒子的圆点图案、条子的竹节造型、万字的中文字符，以及风牌和箭牌，视觉效果接近实物牌面。
+
+![万](docs/screenshots/tiles-detail-1.png)
+
+![条](docs/screenshots/tiles-detail-2.png)
+
+![筒](docs/screenshots/tiles-detail-3.png)
+
+![风](docs/screenshots/tiles-detail-4.png)
+
+![箭](docs/screenshots/tiles-detail-5.png)
+
+### 完整的推倒胡规则
+
+- **万字、条子、筒子** + **风牌（东南西北）** + **箭牌（中發白）**，共 136 张牌
+- **不可吃牌**，只能碰、杠（明杠 / 暗杠 / 加杠）
+- **仅支持自摸胡**，不可胡别人打出的牌
+- 支持标准胡（3n+2）和**七小对**
+- 随机**鬼牌（万能牌）**机制
+
+### 四方牌桌布局
+
+模拟真实牌桌视角：
+- 底部：你的手牌与操作区
+- 上方与左右：三个机器人对手
+- 中央：按出牌顺序排列的弃牌池，每张弃牌标注方位颜色，一目了然
+  - 东：属木，绿色
+  - 南：属火，红色
+  - 西：属金，白色
+  - 北：属水，黑色
+
+
+![弃牌池](docs/screenshots/discard-pool.png)
+
+### AI 牌局分析
+
+接入任意兼容 OpenAI 格式的大语言模型（ChatGPT、Claude、DeepSeek、Ollama 等），为你提供实时的打牌建议与策略分析：
+
+- 推荐出牌与理由
+- 替代方案参考
+- 可在设置中开启「每次轮到你自动分析」
+
+![AI 分析](docs/screenshots/ai-analysis.png)
+
+### 轻松上手
+
+- 点击「开始新游戏」即可开局
+- 点击手牌选中，再点击「出牌」
+- 碰、杠、胡等操作按钮会在可操作时自动出现
+- 无时间限制，尽情思考
+- 胡牌或流局后可点击「查看详情」揭示所有玩家手牌与剩余牌墙
+
+![自摸胡](docs/screenshots/game-result.png)
+
+查看对局详情：
+
+![对局详情](docs/screenshots/view-match.png)
+
+---
+
+## 快速开始
+
+> 面向本地使用者，需要基本的命令行操作。
+
+1. 确保已安装 [Node.js](https://nodejs.org/)（18 版本以上）
+2. 克隆项目并安装依赖：
+
+```bash
+git clone https://github.com/Bertramoon/Guangdong-Mahjong-Training-Assistant.git
+cd guangdong_mahjong
+npm install
+```
+
+3. 启动开发服务器：
+
+```bash
+npm run dev
+```
+
+4. 浏览器打开终端中显示的地址（通常为 `http://localhost:5173`）
+
+### 配置 AI 分析（可选）
+
+进入游戏后点击右上角齿轮图标，填入：
+- **API 地址**：你的 AI 服务端点
+- **API Key**：对应的密钥
+- **模型名称**：如 `gpt-4o`、`deepseek-v4-pro` 等
+
+配置保存在浏览器本地，不会上传到任何服务器。
+
+---
+
+## 技术栈
+
+- Vue 3 + TypeScript + Vite
+- 纯前端 SPA，无后端依赖
+- SVG 矢量牌面渲染
