@@ -7,6 +7,7 @@
         :key="'d' + entry.tile.id"
         :tile="entry.tile"
         :highlighted="matchedTileIds.includes(entry.tile.id)"
+        :enlarged="matchedTileIds.includes(entry.tile.id)"
         :player-wind="entry.playerIndex"
       />
     </div>
@@ -20,6 +21,7 @@
           :semi-transparent="true"
           :ghost-type="ghostType"
           :ghost-value="ghostValue"
+          :player-wind="wallTilePlayer(i)"
         />
       </div>
     </template>
@@ -30,13 +32,19 @@
 import type { Tile, TileType, DiscardEntry } from '../engine/types';
 import TileComponent from './TileComponent.vue';
 
-defineProps<{
+const props = defineProps<{
   discardEntries: DiscardEntry[];
   matchedTileIds: number[];
   wallTiles?: Tile[];
+  currentPlayer: number;
   ghostType?: TileType;
   ghostValue?: number;
 }>();
+
+function wallTilePlayer(index: number): number {
+  const offsets = [0, 3, 2, 1];
+  return (props.currentPlayer + offsets[index % 4]) % 4;
+}
 </script>
 
 <style scoped>

@@ -32,8 +32,7 @@
       </div>
 
       <div class="board-center">
-        <DiscardPool :discard-entries="discardOrder" :matched-tile-ids="matchedTileIds" :wall-tiles="wallTiles" :ghost-type="ghostType" :ghost-value="ghostValue" />
-        <div class="ghost-indicator">鬼牌: {{ ghostName }}</div>
+        <DiscardPool :discard-entries="discardOrder" :matched-tile-ids="matchedTileIds" :wall-tiles="wallTiles" :current-player="currentPlayer" :ghost-type="ghostType" :ghost-value="ghostValue" />
         <div class="turn-info" v-if="turnText">{{ turnText }}</div>
       </div>
 

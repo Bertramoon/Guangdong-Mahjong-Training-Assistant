@@ -31,7 +31,12 @@ export async function callAI(
         messages,
         temperature: temperature ?? 0.7,
         max_tokens: maxTokens ?? 4096,
-        response_format: { type: 'json_object' }
+        response_format: {
+          type: 'json_object'
+        },
+        thinking: {
+          type: "disabled"
+        }
       }),
     });
 

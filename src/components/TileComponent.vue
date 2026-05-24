@@ -6,6 +6,7 @@
       'tile--back': faceDown,
       'tile--ghost': isGhost,
       'tile--highlighted': highlighted,
+      'tile--enlarged': enlarged,
       'tile--transparent': semiTransparent,
       'tile--wind-south': playerWind === 0,
       'tile--wind-west': playerWind === 1,
@@ -29,6 +30,7 @@ const props = withDefaults(defineProps<{
   selected?: boolean;
   faceDown?: boolean;
   highlighted?: boolean;
+  enlarged?: boolean;
   semiTransparent?: boolean;
   playerWind?: number;
   ghostType?: TileType;
@@ -37,6 +39,7 @@ const props = withDefaults(defineProps<{
   selected: false,
   faceDown: false,
   highlighted: false,
+  enlarged: false,
   semiTransparent: false,
 });
 
@@ -90,10 +93,6 @@ const isGhost = computed(() => {
   background: #ffe8e8;
   border-color: #ff4444;
 }
-.tile--highlighted {
-  border: 2px solid #ffd700;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
-}
 .tile--transparent {
   opacity: 0.45;
 }
@@ -101,6 +100,14 @@ const isGhost = computed(() => {
 .tile--wind-west { border: 2px solid #ffffff; box-shadow: 0 0 4px rgba(255,255,255,0.5); }
 .tile--wind-north { border: 2px solid #222222; box-shadow: 0 0 4px rgba(34,34,34,0.5); }
 .tile--wind-east { border: 2px solid #22aa22; box-shadow: 0 0 4px rgba(34,170,34,0.5); }
+.tile--highlighted {
+  border: 2px solid #ffd700 !important;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6) !important;
+}
+.tile--enlarged {
+  transform: scale(1.2);
+  z-index: 1;
+}
 .tile__face {
   width: 100%;
   height: 100%;
