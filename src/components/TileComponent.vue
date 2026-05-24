@@ -7,6 +7,10 @@
       'tile--ghost': isGhost,
       'tile--highlighted': highlighted,
       'tile--transparent': semiTransparent,
+      'tile--wind-south': playerWind === 0,
+      'tile--wind-west': playerWind === 1,
+      'tile--wind-north': playerWind === 2,
+      'tile--wind-east': playerWind === 3,
     }"
     @click="tile && $emit('click', tile)"
   >
@@ -26,6 +30,7 @@ const props = withDefaults(defineProps<{
   faceDown?: boolean;
   highlighted?: boolean;
   semiTransparent?: boolean;
+  playerWind?: number;
   ghostType?: TileType;
   ghostValue?: number;
 }>(), {
@@ -92,6 +97,10 @@ const isGhost = computed(() => {
 .tile--transparent {
   opacity: 0.45;
 }
+.tile--wind-south { border: 2px solid #cc2222; box-shadow: 0 0 4px rgba(204,34,34,0.5); }
+.tile--wind-west { border: 2px solid #ffffff; box-shadow: 0 0 4px rgba(255,255,255,0.5); }
+.tile--wind-north { border: 2px solid #222222; box-shadow: 0 0 4px rgba(34,34,34,0.5); }
+.tile--wind-east { border: 2px solid #22aa22; box-shadow: 0 0 4px rgba(34,170,34,0.5); }
 .tile__face {
   width: 100%;
   height: 100%;

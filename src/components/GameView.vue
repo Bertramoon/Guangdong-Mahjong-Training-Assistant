@@ -18,6 +18,7 @@
         :hands="gameState.hands"
         :melds="gameState.melds"
         :discards="gameState.discards"
+        :discard-order="gameState.discardOrder"
         :selected-tile-id="selectedTile?.id ?? null"
         :highlighted-tile-ids="highlightedTileIds"
         :matched-tile-ids="matchedTileIds"

@@ -32,7 +32,7 @@
       </div>
 
       <div class="board-center">
-        <DiscardPool :tiles="centerDiscards" :matched-tile-ids="matchedTileIds" :wall-tiles="wallTiles" :ghost-type="ghostType" :ghost-value="ghostValue" />
+        <DiscardPool :discard-entries="discardOrder" :matched-tile-ids="matchedTileIds" :wall-tiles="wallTiles" :ghost-type="ghostType" :ghost-value="ghostValue" />
         <div class="ghost-indicator">鬼牌: {{ ghostName }}</div>
         <div class="turn-info" v-if="turnText">{{ turnText }}</div>
       </div>
@@ -70,7 +70,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Tile, Meld, TileType } from '../engine/types';
+import type { Tile, Meld, TileType, DiscardEntry } from '../engine/types';
 import PlayerHand from './PlayerHand.vue';
 import MeldArea from './MeldArea.vue';
 import DiscardPool from './DiscardPool.vue';
@@ -80,6 +80,7 @@ const props = defineProps<{
   hands: Tile[][];
   melds: Meld[][];
   discards: Tile[][];
+  discardOrder: DiscardEntry[];
   selectedTileId: number | null;
   highlightedTileIds: number[];
   matchedTileIds: number[];
@@ -115,8 +116,6 @@ const rightPlayerMelds = computed(() => props.melds[3]);
 const leftPlayerDiscards = computed(() => props.discards[1]);
 const topPlayerDiscards = computed(() => props.discards[2]);
 const rightPlayerDiscards = computed(() => props.discards[3]);
-
-const centerDiscards = computed(() => props.discards.flat());
 </script>
 
 <style scoped>

@@ -2,7 +2,13 @@
   <div class="discard-pool">
     <div class="discard-title">弃牌池</div>
     <div class="discard-grid">
-      <TileComponent v-for="(tile, i) in tiles" :key="'d' + i" :tile="tile" :highlighted="matchedTileIds.includes(tile.id)" />
+      <TileComponent
+        v-for="entry in discardEntries"
+        :key="'d' + entry.tile.id"
+        :tile="entry.tile"
+        :highlighted="matchedTileIds.includes(entry.tile.id)"
+        :player-wind="entry.playerIndex"
+      />
     </div>
     <template v-if="wallTiles && wallTiles.length > 0">
       <div class="discard-title wall-title">剩余牌墙</div>
@@ -21,11 +27,11 @@
 </template>
 
 <script setup lang="ts">
-import type { Tile, TileType } from '../engine/types';
+import type { Tile, TileType, DiscardEntry } from '../engine/types';
 import TileComponent from './TileComponent.vue';
 
 defineProps<{
-  tiles: Tile[];
+  discardEntries: DiscardEntry[];
   matchedTileIds: number[];
   wallTiles?: Tile[];
   ghostType?: TileType;
