@@ -120,6 +120,27 @@ describe('pengPhase', () => {
     expect(next.phase).toBe('discard');
     expect(next.currentPlayer).toBe(1);
   });
+
+  it('碰牌后从 discardOrder 中移除对应记录', () => {
+    const game = createGame(0);
+    // 玩家 0 出牌
+    game.phase = 'discard';
+    const tile = game.hands[0][0];
+    game.hands[0] = game.hands[0].slice(1);
+    game.discards[0] = [tile];
+    game.discardOrder = [{ playerIndex: 0, tile }];
+    game.lastDiscard = tile;
+    game.lastDiscardPlayer = 0;
+    game.phase = 'reaction';
+    // 机器人 1 碰牌
+    game.hands[1] = [
+      { type: tile.type, value: tile.value, id: 1 },
+      { type: tile.type, value: tile.value, id: 2 },
+      { type: 'wan', value: 2, id: 3 },
+    ];
+    const next = pengPhase(game, 1);
+    expect(next.discardOrder).toHaveLength(0);
+  });
 });
 
 describe('jiaGangPhase', () => {
