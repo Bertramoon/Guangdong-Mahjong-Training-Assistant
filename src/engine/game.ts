@@ -23,6 +23,7 @@ export function createGame(dealerIndex: number = 0): GameState {
     hands: hands.map(h => sortHand(h)),
     melds: [[], [], [], []],
     discards: [[], [], [], []],
+    discardOrder: [],
     currentPlayer: dealerIndex,
     phase: 'draw',
     ghostType: ghostTile.type,
@@ -56,6 +57,7 @@ export function discardPhase(game: GameState, tile: Tile): GameState {
   const newDiscards = game.discards.map((d, i) =>
     i === player ? [...d, tile] : [...d],
   );
+  const newDiscardOrder = [...game.discardOrder, { playerIndex: player, tile }];
 
   const nextPhase = player === 0 ? 'reaction' : 'draw';
   const nextPlayer = player === 0 ? player : nextPlayerAfter(player);
@@ -64,6 +66,7 @@ export function discardPhase(game: GameState, tile: Tile): GameState {
     ...game,
     hands: newHands,
     discards: newDiscards,
+    discardOrder: newDiscardOrder,
     phase: nextPhase,
     currentPlayer: nextPlayer,
     lastDiscard: tile,

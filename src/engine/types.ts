@@ -36,12 +36,19 @@ export interface TurnRecord {
   meld?: Meld;
 }
 
+/** 弃牌记录（按实际出牌顺序） */
+export interface DiscardEntry {
+  playerIndex: number;
+  tile: Tile;
+}
+
 /** 单局游戏状态 */
 export interface GameState {
   wall: Tile[];               // 牌墙（剩余牌）
   hands: Tile[][];            // 四个玩家的手牌 [playerIndex]
   melds: Meld[][];            // 四个玩家的副露
   discards: Tile[][];         // 四个玩家的弃牌历史
+  discardOrder: DiscardEntry[]; // 按实际出牌顺序的全局弃牌序列
   currentPlayer: number;      // 当前操作玩家索引 (0=玩家, 1=西, 2=北, 3=东)
   phase: GamePhase;
   ghostType: TileType;        // 鬼牌的花色

@@ -13,6 +13,7 @@ describe('createGame', () => {
     expect(game.currentPlayer).toBe(0);
     expect(game.ghostType).toBeDefined();
     expect(game.ghostValue).toBeGreaterThan(0);
+    expect(game.discardOrder).toEqual([]);
   });
 
   it('鬼牌已从牌墙中移除', () => {
@@ -72,6 +73,31 @@ describe('discardPhase', () => {
     game.phase = 'discard';
     const fakeTile = { type: 'wan' as const, value: 9, id: 999 };
     expect(() => discardPhase(game, fakeTile)).toThrow();
+  });
+
+  it('discardOrder 按时间顺序记录弃牌及玩家索引', () => {
+    const game = createGame(0);
+    const afterDraw = drawPhase(game);
+    const tile = afterDraw.hands[0][0];
+    const next = discardPhase(afterDraw, tile);
+    expect(next.discardOrder).toHaveLength(1);
+    expect(next.discardOrder[0].playerIndex).toBe(0);
+    expect(next.discardOrder[0].tile.id).toBe(tile.id);
+  });
+
+  it('连续弃牌时 discardOrder 按序追加', () => {
+    let game = createGame(0);
+    const afterDraw = drawPhase(game);
+    const tile1 = afterDraw.hands[0][0];
+    const afterDiscard1 = discardPhase(afterDraw, tile1);
+    expect(afterDiscard1.discardOrder).toHaveLength(1);
+    // Simulate robot turn: draw + discard
+    const afterDraw2 = drawPhase({ ...afterDiscard1, phase: 'draw' as const, currentPlayer: 3 });
+    const tile2 = afterDraw2.hands[3][0];
+    const afterDiscard2 = discardPhase(afterDraw2, tile2);
+    expect(afterDiscard2.discardOrder).toHaveLength(2);
+    expect(afterDiscard2.discardOrder[0].playerIndex).toBe(0);
+    expect(afterDiscard2.discardOrder[1].playerIndex).toBe(3);
   });
 });
 
