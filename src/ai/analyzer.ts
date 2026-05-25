@@ -1,5 +1,6 @@
 import type { AIProviderConfig } from './provider';
 import type { GameState } from '../engine/types';
+import type { DiscardRecommendation } from '../engine/advisor';
 import { callAI } from './provider';
 import { buildSystemPrompt, buildUserPrompt } from './prompt';
 
@@ -14,6 +15,7 @@ export async function analyzeGame(
   config: AIProviderConfig,
   game: GameState,
   playerIndex?: number,
+  discardAdvice?: DiscardRecommendation,
 ): Promise<AnalysisResult> {
   const idx = playerIndex ?? game.currentPlayer;
 
@@ -21,7 +23,7 @@ export async function analyzeGame(
     config,
     [
       { role: 'system', content: buildSystemPrompt() },
-      { role: 'user', content: buildUserPrompt(game, idx) },
+      { role: 'user', content: buildUserPrompt(game, idx, discardAdvice) },
     ],
     0.3,
     8192,

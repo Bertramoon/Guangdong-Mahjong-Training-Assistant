@@ -141,7 +141,7 @@ async function analyzeCurrentGame() {
   aiLoading.value = true;
   aiError.value = '';
   aiResult.value = null;
-  const result = await analyzeGame(aiConfig.value, gameState.value, 0);
+  const result = await analyzeGame(aiConfig.value, gameState.value, 0, discardAdvice.value ?? undefined);
   aiResult.value = result;
   if (result.error) aiError.value = result.error;
   aiLoading.value = false;

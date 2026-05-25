@@ -1,4 +1,5 @@
 import type { GameState, MeldType } from '../engine/types';
+import type { DiscardRecommendation } from '../engine/advisor';
 import { getTileName } from '../engine/tile';
 
 const MELD_TYPE_NAMES: Record<MeldType, string> = {
@@ -17,45 +18,36 @@ export function buildSystemPrompt(): string {
 - 自摸即赢，没有点炮胡，也没有抢杠胡
 - 碰后需要出一张牌。杠后先摸牌，若没有胡牌，需要出一张牌
 - 共136张牌：万（1-9）、条（1-9）、筒（1-9）各4张，风牌（东南西北）各4张，箭牌（中发白）各4张
-- 即使是胡牌了也继续分析，但是在原因分析中提醒用户“当前可能已经胡牌了”。接着假设当前不是处于自摸阶段，而是碰完需要出牌的阶段，分析应该出什么牌
 - 牌局阶段如下
-  - discard: 出牌阶段，等待出牌。注意，此时已经是摸完牌的阶段了，总共14张牌，包括手牌和副露。如果没胡牌，需要出牌
+  - discard: 出牌阶段，等待出牌。此时手牌14张（含副露），需要出一张
   - reaction: 反应阶段（等待决定碰/杠）
 
-### 决策推理步骤
-1. **手牌分析**：整理手牌，计算向听数，找出所有可能的搭子、对子、顺子。判断最快胜利可能。
-2. **进张效率**：对比不同舍牌选项的进张数、改良机会。
-3. **舍牌优先级（仅限未听牌时）：**
-  - 先扔孤张幺九（非鬼）。
-  - 一般情况下，再扔无法靠张的浮牌、重复的边坎张。
-4. **安全度评估**：根据牌河内的现物、舍牌顺序、对手动作，识别“危险牌”（尤其是生张、尖张）。
-5. **动作可行性检查**：
-   - 若摸入的牌可自摸胡，直接判定“胡”。
-   - 若有碰/杠机会：需要权衡，尤其是考虑碰完对当前牌型是否有改善。
-   - 若手牌已听牌：选择听牌形态最佳（最大进张数、高番、可改良）的一张舍出。
+### 出牌阶段决策规则
+当用户提供了”算法计算的出牌建议TOP10”时，你的任务是：
+1. 从TOP10列表中选择最优的一个出牌，综合考虑向听数、进张数、牌河安全性以及当前牌局情况（弃牌堆、副露）
+2. 如果TOP10中有向听数相同的选项，优先选择进张数更大的
+3. 如果已听牌（向听数=0），优先选择听牌面最广的
 
-### 注意点（重要）
-- **不要质疑当前牌组局势**: 无需思考我给定的牌组情况和阶段描述是否符合规则，直接思考如何操作即可
-- **不应过多思考**：考虑常见打法即可，无需思考冷门打法
-- **忌“贪大弃胡”**：不要为了硬做清一色、碰碰胡，把已经可以自摸的鸡胡拆掉。先胡为赢。
+### 注意点
+- **不要质疑牌组局势**，直接决策即可
+- **忌“贪大弃胡”**：不要为了硬做清一色、碰碰胡，把已经可以自摸的鸡胡拆掉
 - **忌“乱碰乱杠”**：随意碰牌破坏门清，损失平胡或更高番种机会；无谓的明杠可能点炮（被抢杠），也可能帮助对手多摸牌。
 - **忌“死抱生张”**：手中危险生张早该处理时不忍舍，到后盘成为“炮弹”。早中盘适度打出生张探路，但后盘必须谨守。
 - **忌“拆对子留搭子”**：除非番型必须（如强制平胡），一般不要拆已有的对子去做顺子，对子能碰能当将，价值更高。
 - **忌“听口过窄”**：听边张、卡张、单吊且无改良时，若不安全应主动转听，勿等死。
-- **忌“丢鬼牌”**: 绝对不允许出鬼牌
+- **忌“丢鬼牌”**：绝对不允许出鬼牌
 
 ### 输出规则
 请根据当前牌局状况，分析并给出建议。你的输出必须是JSON格式：
 \`\`\`json
 {
   "recommendation": "建议的操作",
-  "reasoning": "分析原因。精简输出核心理由，不超过300字",
-  "alternative": "备选方案（可选）"
+  "reasoning": "分析原因。精简输出核心理由，不超过300字"
 }
 \`\`\``;
 }
 
-export function buildUserPrompt(game: GameState, playerIndex: number): string {
+export function buildUserPrompt(game: GameState, playerIndex: number, discardAdvice?: DiscardRecommendation): string {
   const lines: string[] = [];
 
   // Current player's hand
@@ -109,7 +101,21 @@ export function buildUserPrompt(game: GameState, playerIndex: number): string {
     lines.push(`最近出牌：${playerLabels[game.lastDiscardPlayer]}打出${getTileName(game.lastDiscard)}`);
   }
 
-  lines.push(`\n请分析当前局面并给出建议。`);
+  // Discard advisor TOP10 (only in discard phase)
+  if (discardAdvice && game.phase === 'discard' && game.currentPlayer === playerIndex) {
+    lines.push(`\n### 算法计算的出牌建议TOP10（只根据向听数 + 进张数，排名不代表质量）`);
+    lines.push(`当前最优向听数：${discardAdvice.currentShanten}`);
+    for (let i = 0; i < discardAdvice.evaluations.length; i++) {
+      const e = discardAdvice.evaluations[i];
+      const tileName = getTileName(e.discardTile);
+      const waiting = e.waitingTiles.map(w => getTileName({ type: w.type, value: w.value, id: -1 })).join('、');
+      const acceptance = e.acceptanceTiles.map(a => getTileName({ type: a.type, value: a.value, id: -1 })).join('、');
+      lines.push(`${i + 1}. 打${tileName}：向听数=${e.shanten}，进张数=${e.acceptanceCount}${e.shanten === 0 && waiting ? `，听牌：${waiting}` : ''}（进张：${acceptance}）`);
+    }
+    lines.push(`\n请从以上10个建议中选择最优的一个出牌，给出你的决策。`);
+  } else {
+    lines.push(`\n请分析当前局面并给出建议。`);
+  }
 
   return lines.join('\n');
 }
