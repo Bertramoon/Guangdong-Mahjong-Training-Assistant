@@ -3,6 +3,7 @@ import {
   tilesToCounts,
   suitMaxTaatsu,
   isNumberSuit,
+  calculateShanten,
 } from '../../src/engine/shanten';
 import type { Tile, TileType } from '../../src/engine/types';
 
@@ -87,5 +88,108 @@ describe('suitMaxTaatsu', () => {
     expect(result.length).toBeGreaterThanOrEqual(2);
     expect(result[1]).toBe(0);
     expect(result[0]).toBe(2);
+  });
+});
+
+describe('calculateShanten - standard form (no ghost)', () => {
+  it('complete hand: shanten = -1', () => {
+    const hand = [
+      h('w',1),h('w',2),h('w',3),
+      h('t',4),h('t',5),h('t',6),
+      h('g',7),h('g',8),h('g',9),
+      h('j',1),h('j',1),h('j',1),
+      h('w',2),h('w',2),
+    ];
+    expect(calculateShanten(hand, null, null)).toBe(-1);
+  });
+
+  it('tenpai (3 mentsu + triplet + isolated): shanten = 0', () => {
+    const hand = [
+      h('w',1),h('w',2),h('w',3),
+      h('t',4),h('t',5),h('t',6),
+      h('g',7),h('g',8),h('g',9),
+      h('j',1),h('j',1),h('j',1),
+      h('w',2),
+    ];
+    expect(calculateShanten(hand, null, null)).toBe(0);
+  });
+
+  it('1-shanten: shanten = 1', () => {
+    const hand = [
+      h('w',1),h('w',2),h('w',3),
+      h('t',4),h('t',5),h('t',6),
+      h('g',7),h('g',8),h('g',9),
+      h('j',1),h('j',1),
+      h('w',2), h('w',5),
+    ];
+    expect(calculateShanten(hand, null, null)).toBe(1);
+  });
+
+  it('worst case (13 isolated): shanten >= 6', () => {
+    const hand = [
+      h('w',1),h('w',5),h('w',9),
+      h('t',2),h('t',6),
+      h('g',3),h('g',7),
+      h('f',1),h('f',2),h('f',3),h('f',4),
+      h('j',1),
+    ];
+    expect(calculateShanten(hand, null, null)).toBeGreaterThanOrEqual(6);
+  });
+
+  it('seven pairs tenpai: shanten = 0', () => {
+    const hand = [
+      h('w',1),h('w',1), h('w',3),h('w',3), h('t',2),h('t',2),
+      h('t',5),h('t',5), h('g',1),h('g',1), h('f',1),h('f',1),
+      h('f',2),
+    ];
+    expect(calculateShanten(hand, null, null)).toBe(0);
+  });
+
+  it('pung-pung tenpai: shanten = 0', () => {
+    const hand = [
+      h('w',1),h('w',1),h('w',1),
+      h('t',3),h('t',3),h('t',3),
+      h('g',4),h('g',4),h('g',4),
+      h('j',1),h('j',1),h('j',1),
+      h('w',2),
+    ];
+    expect(calculateShanten(hand, null, null)).toBe(0);
+  });
+});
+
+describe('calculateShanten - with ghost tiles', () => {
+  it('1 ghost reduces shanten by 1', () => {
+    const hand = [
+      h('w',1),h('w',2),h('w',3),
+      h('t',4),h('t',5),h('t',6),
+      h('g',7),h('g',8),h('g',9),
+      h('j',1),h('j',1),
+      h('w',2), h('w',5),
+      h('j',3),
+    ];
+    expect(calculateShanten(hand, 'jian', 3)).toBe(0);
+  });
+
+  it('2 ghosts on near-complete hand: shanten = -1 (won)', () => {
+    const hand = [
+      h('w',1),h('w',2),h('w',3),
+      h('t',4),h('t',5),h('t',6),
+      h('g',7),h('g',8),h('g',9),
+      h('j',1),h('j',1),
+      h('w',2),
+      h('j',3),h('j',3),
+    ];
+    expect(calculateShanten(hand, 'jian', 3)).toBe(-1);
+  });
+});
+
+describe('calculateShanten - with melds', () => {
+  it('hand with melds adjusts formula', () => {
+    const hand = [
+      h('w',1),h('w',2),h('w',3),
+      h('t',4),h('t',5),h('t',6),
+      h('w',2),
+    ];
+    expect(calculateShanten(hand, null, null, 1)).toBe(2);
   });
 });

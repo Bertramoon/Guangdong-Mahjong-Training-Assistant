@@ -83,3 +83,89 @@ export function suitMaxTaatsu(counts: number[], isNumber: boolean): number[] {
   search(0, 0, 0);
   return result;
 }
+
+const ALL_SUITS: TileType[] = ['wan', 'tiao', 'tong', 'feng', 'jian'];
+
+export function calculateShanten(
+  hand: Tile[],
+  ghostType: TileType | null,
+  ghostValue: number | null,
+  meldCount: number = 0,
+): number {
+  let ghostCount = 0;
+  const normalTiles: Tile[] = [];
+  for (const t of hand) {
+    if (ghostType !== null && t.type === ghostType && t.value === ghostValue) {
+      ghostCount++;
+    } else {
+      normalTiles.push(t);
+    }
+  }
+
+  const standardShanten = calcStandardShanten(normalTiles, meldCount);
+  let sevenPairsShanten = 99;
+  if (meldCount === 0) {
+    sevenPairsShanten = calcSevenPairsShanten(normalTiles);
+  }
+
+  const baseShanten = Math.min(standardShanten, sevenPairsShanten);
+  return baseShanten - ghostCount;
+}
+
+function calcStandardShanten(normalTiles: Tile[], meldCount: number): number {
+  const suitCounts: Record<string, number[]> = {};
+  for (const suit of ALL_SUITS) {
+    suitCounts[suit] = tilesToCounts(normalTiles, suit);
+  }
+
+  const suitResults: { suit: TileType; data: number[] }[] = [];
+  for (const suit of ALL_SUITS) {
+    const counts = suitCounts[suit];
+    const isNum = isNumberSuit(suit as TileType);
+    suitResults.push({ suit: suit as TileType, data: suitMaxTaatsu(counts, isNum) });
+  }
+
+  let dp = new Map<number, number>();
+  dp.set(meldCount, 0);
+
+  for (const { data } of suitResults) {
+    const nextDp = new Map<number, number>();
+    for (const [totalM, totalT] of dp) {
+      for (let m = 0; m < data.length; m++) {
+        if (data[m] < 0) continue;
+        const newM = totalM + m;
+        if (newM > 4) continue;
+        const newT = totalT + data[m];
+        const existing = nextDp.get(newM);
+        if (existing === undefined || newT > existing) {
+          nextDp.set(newM, newT);
+        }
+      }
+    }
+    dp = nextDp;
+  }
+
+  let minShanten = 8;
+  for (const [m, t] of dp) {
+    const effectiveT = Math.min(t, 4 - m + 1);
+    const shanten = 8 - 2 * m - effectiveT;
+    minShanten = Math.min(minShanten, shanten);
+  }
+
+  return minShanten;
+}
+
+function calcSevenPairsShanten(normalTiles: Tile[]): number {
+  const pairCounts: Record<string, number> = {};
+  for (const t of normalTiles) {
+    const key = `${t.type}-${t.value}`;
+    pairCounts[key] = (pairCounts[key] || 0) + 1;
+  }
+
+  let pairCount = 0;
+  for (const count of Object.values(pairCounts)) {
+    pairCount += Math.floor(count / 2);
+  }
+
+  return 6 - pairCount;
+}
