@@ -45,49 +45,49 @@ describe('isNumberSuit', () => {
 describe('suitMaxTaatsu', () => {
   it('empty suit: m=0 only, t=0', () => {
     const result = suitMaxTaatsu([0,0,0,0,0,0,0,0,0], true);
-    expect(result.length).toBe(1);
-    expect(result[0]).toBe(0);
+    expect(result.any.length).toBe(1);
+    expect(result.any[0]).toBe(0);
   });
   it('single isolated tile: m=0, t=0', () => {
     const result = suitMaxTaatsu([1,0,0,0,0,0,0,0,0], true);
-    expect(result[0]).toBe(0);
+    expect(result.any[0]).toBe(0);
   });
   it('one pair: m=0, t=1', () => {
     const result = suitMaxTaatsu([2,0,0,0,0,0,0,0,0], true);
-    expect(result[0]).toBe(1);
+    expect(result.any[0]).toBe(1);
   });
   it('one triplet: m=1, t=0', () => {
     const result = suitMaxTaatsu([3,0,0,0,0,0,0,0,0], true);
-    expect(result.length).toBeGreaterThanOrEqual(2);
-    expect(result[1]).toBe(0);
+    expect(result.any.length).toBeGreaterThanOrEqual(2);
+    expect(result.any[1]).toBe(0);
   });
   it('sequence 123: m=1, t=0', () => {
     const result = suitMaxTaatsu([1,1,1,0,0,0,0,0,0], true);
-    expect(result.length).toBeGreaterThanOrEqual(2);
-    expect(result[1]).toBe(0);
+    expect(result.any.length).toBeGreaterThanOrEqual(2);
+    expect(result.any[1]).toBe(0);
   });
   it('two-sided wait 23: m=0, t=1', () => {
     const result = suitMaxTaatsu([0,1,1,0,0,0,0,0,0], true);
-    expect(result[0]).toBe(1);
+    expect(result.any[0]).toBe(1);
   });
   it('112233: best is 2 sequences (m=2)', () => {
     const result = suitMaxTaatsu([2,2,2,0,0,0,0,0,0], true);
-    expect(result.length).toBeGreaterThanOrEqual(3);
-    expect(result[2]).toBe(0);
+    expect(result.any.length).toBeGreaterThanOrEqual(3);
+    expect(result.any[2]).toBe(0);
   });
   it('12345: sequence(123) + taatsu(45) = m=1, t=1', () => {
     const result = suitMaxTaatsu([1,1,1,1,1,0,0,0,0], true);
-    expect(result[1]).toBe(1);
+    expect(result.any[1]).toBe(1);
   });
   it('honor tiles: no sequences', () => {
     const result = suitMaxTaatsu([3,1], false);
-    expect(result[1]).toBe(0);
+    expect(result.any[1]).toBe(0);
   });
   it('four of a kind: triplet + isolated or 2 pairs', () => {
     const result = suitMaxTaatsu([4,0,0,0,0,0,0,0,0], true);
-    expect(result.length).toBeGreaterThanOrEqual(2);
-    expect(result[1]).toBe(0);
-    expect(result[0]).toBe(2);
+    expect(result.any.length).toBeGreaterThanOrEqual(2);
+    expect(result.any[1]).toBe(0);
+    expect(result.any[0]).toBe(2);
   });
 });
 
@@ -191,5 +191,38 @@ describe('calculateShanten - with melds', () => {
       h('w',2),
     ];
     expect(calculateShanten(hand, null, null, 1)).toBe(2);
+  });
+});
+
+describe('shanten pair tracking regression', () => {
+  it('M=4 with gap wait (no pair) gives shanten=0, not -1', () => {
+    // 万345 条234 筒2346 + meld(中中中) = 10 tiles, meldCount=1
+    // M=4 (万345+条234+筒234+meld), T=0, isolated(筒6). No pair → shanten=0.
+    const hand = [
+      h('w',3),h('w',4),h('w',5),
+      h('t',2),h('t',3),h('t',4),
+      h('g',2),h('g',3),h('g',4),h('g',6),
+    ];
+    expect(calculateShanten(hand, 'tiao', 6, 1)).toBe(0);
+  });
+
+  it('M=4 with pair taatsu gives shanten=-1', () => {
+    // Same hand but add 筒6 to form pair(筒66) with existing 筒6
+    const hand = [
+      h('w',3),h('w',4),h('w',5),
+      h('t',2),h('t',3),h('t',4),
+      h('g',2),h('g',3),h('g',4),h('g',6),h('g',6),
+    ];
+    expect(calculateShanten(hand, 'tiao', 6, 1)).toBe(-1);
+  });
+
+  it('M=4 adding non-pair tile keeps shanten=0', () => {
+    // 万345 条234 筒2346 + 筒1 (gap wait 4-6 still no pair)
+    const hand = [
+      h('w',3),h('w',4),h('w',5),
+      h('t',2),h('t',3),h('t',4),
+      h('g',1),h('g',2),h('g',3),h('g',4),h('g',6),
+    ];
+    expect(calculateShanten(hand, 'tiao', 6, 1)).toBe(0);
   });
 });

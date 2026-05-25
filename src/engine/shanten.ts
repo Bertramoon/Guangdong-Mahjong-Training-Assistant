@@ -19,69 +19,71 @@ export function tilesToCounts(tiles: Tile[], suit: TileType): number[] {
   return counts;
 }
 
-/**
- * For a single suit's count array, find the maximum taatsu count
- * for each possible mentsu count.
- *
- * Returns result[m] = max taatsu when exactly m mentsu are extracted.
- * Unreachable m values have result[m] = -1.
- */
-export function suitMaxTaatsu(counts: number[], isNumber: boolean): number[] {
+export interface SuitResult {
+  any: number[];      // any[m] = max taatsu regardless of pair type
+  withPair: number[]; // withPair[m] = max taatsu with at least one pair taatsu (-1 if impossible)
+}
+
+export function suitMaxTaatsu(counts: number[], isNumber: boolean): SuitResult {
   const totalTiles = counts.reduce((a, b) => a + b, 0);
   const maxM = Math.min(4, Math.floor(totalTiles / 3));
-  const result = new Array(maxM + 1).fill(-1);
+  const any = new Array(maxM + 1).fill(-1);
+  const withPair = new Array(maxM + 1).fill(-1);
   const c = [...counts];
 
-  function search(pos: number, m: number, t: number): void {
+  function search(pos: number, m: number, t: number, hasPair: boolean): void {
     while (pos < c.length && c[pos] === 0) pos++;
     if (pos >= c.length) {
-      if (m <= maxM) result[m] = Math.max(result[m], t);
+      if (m <= maxM) {
+        any[m] = Math.max(any[m], t);
+        if (hasPair) withPair[m] = Math.max(withPair[m], t);
+      }
       return;
     }
 
     // Try triplet (mentsu)
     if (c[pos] >= 3) {
       c[pos] -= 3;
-      search(pos, m + 1, t);
+      search(pos, m + 1, t, hasPair);
       c[pos] += 3;
     }
 
     // Try sequence (mentsu, number suits only)
     if (isNumber && pos + 2 < c.length && c[pos] >= 1 && c[pos + 1] >= 1 && c[pos + 2] >= 1) {
       c[pos]--; c[pos + 1]--; c[pos + 2]--;
-      search(pos, m + 1, t);
+      search(pos, m + 1, t, hasPair);
       c[pos]++; c[pos + 1]++; c[pos + 2]++;
     }
 
-    // Try pair (taatsu)
+    // Try pair (taatsu) — this IS a pair
     if (c[pos] >= 2) {
       c[pos] -= 2;
-      search(pos, m, t + 1);
+      search(pos, m, t + 1, true);
       c[pos] += 2;
     }
 
-    // Try two-sided wait (taatsu, number suits only)
+    // Try two-sided wait (taatsu, NOT a pair)
     if (isNumber && pos + 1 < c.length && c[pos] >= 1 && c[pos + 1] >= 1) {
       c[pos]--; c[pos + 1]--;
-      search(pos, m, t + 1);
+      search(pos, m, t + 1, hasPair);
       c[pos]++; c[pos + 1]++;
     }
 
-    // Try gap wait (taatsu, number suits only)
+    // Try gap wait (taatsu, NOT a pair)
     if (isNumber && pos + 2 < c.length && c[pos] >= 1 && c[pos + 2] >= 1) {
       c[pos]--; c[pos + 2]--;
-      search(pos, m, t + 1);
+      search(pos, m, t + 1, hasPair);
       c[pos]++; c[pos + 2]++;
     }
 
     // Skip this tile (isolated)
     c[pos]--;
-    search(pos, m, t);
+    search(pos, m, t, hasPair);
     c[pos]++;
   }
 
-  search(0, 0, 0);
-  return result;
+  search(0, 0, 0, false);
+  return { any, withPair };
 }
 
 const ALL_SUITS: TileType[] = ['wan', 'tiao', 'tong', 'feng', 'jian'];
@@ -118,35 +120,82 @@ function calcStandardShanten(normalTiles: Tile[], meldCount: number): number {
     suitCounts[suit] = tilesToCounts(normalTiles, suit);
   }
 
-  const suitResults: { suit: TileType; data: number[] }[] = [];
+  const suitResults: { suit: TileType; data: SuitResult }[] = [];
   for (const suit of ALL_SUITS) {
     const counts = suitCounts[suit];
     const isNum = isNumberSuit(suit as TileType);
     suitResults.push({ suit: suit as TileType, data: suitMaxTaatsu(counts, isNum) });
   }
 
-  let dp = new Map<number, number>();
-  dp.set(meldCount, 0);
+  // Two DP maps:
+  // dpAny[totalM] = max total taatsu (any type)
+  // dpPair[totalM] = max total taatsu (at least one pair taatsu from some suit)
+  let dpAny = new Map<number, number>();
+  let dpPair = new Map<number, number>();
+  dpAny.set(meldCount, 0);
 
-  for (const { data } of suitResults) {
-    const nextDp = new Map<number, number>();
-    for (const [totalM, totalT] of dp) {
-      for (let m = 0; m < data.length; m++) {
-        if (data[m] < 0) continue;
+  for (const { any, withPair } of suitResults.map(r => r.data)) {
+    const nextDpAny = new Map<number, number>();
+    const nextDpPair = new Map<number, number>();
+
+    // dpAny + any → nextDpAny
+    for (const [totalM, totalT] of dpAny) {
+      for (let m = 0; m < any.length; m++) {
+        if (any[m] < 0) continue;
         const newM = totalM + m;
         if (newM > 4) continue;
-        const newT = totalT + data[m];
-        const existing = nextDp.get(newM);
+        const newT = totalT + any[m];
+        const existing = nextDpAny.get(newM);
         if (existing === undefined || newT > existing) {
-          nextDp.set(newM, newT);
+          nextDpAny.set(newM, newT);
         }
       }
     }
-    dp = nextDp;
+
+    // dpAny + withPair → nextDpPair (this suit provides the pair)
+    for (const [totalM, totalT] of dpAny) {
+      for (let m = 0; m < withPair.length; m++) {
+        if (withPair[m] < 0) continue;
+        const newM = totalM + m;
+        if (newM > 4) continue;
+        const newT = totalT + withPair[m];
+        const existing = nextDpPair.get(newM);
+        if (existing === undefined || newT > existing) {
+          nextDpPair.set(newM, newT);
+        }
+      }
+    }
+
+    // dpPair + any → nextDpPair (pair already found, any suit can contribute)
+    for (const [totalM, totalT] of dpPair) {
+      for (let m = 0; m < any.length; m++) {
+        if (any[m] < 0) continue;
+        const newM = totalM + m;
+        if (newM > 4) continue;
+        const newT = totalT + any[m];
+        const existing = nextDpPair.get(newM);
+        if (existing === undefined || newT > existing) {
+          nextDpPair.set(newM, newT);
+        }
+      }
+    }
+
+    dpAny = nextDpAny;
+    dpPair = nextDpPair;
   }
 
+  // Calculate minimum shanten from both maps
   let minShanten = 8;
-  for (const [m, t] of dp) {
+
+  // No pair available: can't use a slot for head, max useful taatsu = 4-M
+  for (const [m, t] of dpAny) {
+    const effectiveT = Math.min(t, 4 - m);
+    const shanten = 8 - 2 * m - effectiveT;
+    minShanten = Math.min(minShanten, shanten);
+  }
+
+  // Pair available: one taatsu serves as head, max useful taatsu = 5-M
+  for (const [m, t] of dpPair) {
     const effectiveT = Math.min(t, 4 - m + 1);
     const shanten = 8 - 2 * m - effectiveT;
     minShanten = Math.min(minShanten, shanten);
