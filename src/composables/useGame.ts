@@ -9,6 +9,7 @@ import { isSelfHu } from '../engine/hu';
 import { getTileName } from '../engine/tile';
 import { canJiaGang, getJiaGangCandidates, canAnGang, getAnGangCandidates, canPeng, canMingGang } from '../engine/meld';
 import { robotDiscard, robotShouldPeng, robotShouldMingGang, robotShouldJiaGang } from '../robot/robot';
+import { getDiscardRecommendation, type DiscardRecommendation } from '../engine/advisor';
 
 export function useGame() {
   const gameState = ref<GameState | null>(null);
@@ -22,6 +23,23 @@ export function useGame() {
   const jiaGangOptions = ref<{ type: TileType; value: number }[]>([]);
   const anGangOptions = ref<{ type: TileType; value: number }[]>([]);
   const highlightedTileIds = ref<number[]>([]);
+
+  const discardAdvice = computed<DiscardRecommendation | null>(() => {
+    const game = gameState.value;
+    if (!game || game.currentPlayer !== 0 || game.phase !== 'discard') return null;
+    const hand = game.hands[0];
+    if (hand.length < 2) return null;
+    try {
+      return getDiscardRecommendation(
+        hand,
+        game.ghostType,
+        game.ghostValue,
+        game.melds[0].length,
+      );
+    } catch {
+      return null;
+    }
+  });
 
   const currentPlayerName = computed(() => {
     if (!gameState.value) return '';
@@ -431,5 +449,6 @@ export function useGame() {
     playerPass,
     playerHu,
     addLog,
+    discardAdvice,
   };
 }

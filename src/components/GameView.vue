@@ -61,6 +61,12 @@
         @analyze="analyzeCurrentGame"
       />
 
+      <DiscardAdvisorVue
+        v-if="discardAdvice"
+        :evaluations="discardAdvice.evaluations"
+        :current-shanten="discardAdvice.currentShanten"
+      />
+
       <GameResult
         :show="(gameState.phase === 'hu' || gameState.phase === 'draw_end') && !revealMode"
         :winner="gameState.winner"
@@ -97,6 +103,7 @@ import type { AppSettings } from '../storage/store';
 import GameBoard from './GameBoard.vue';
 import ActionPanel from './ActionPanel.vue';
 import GameResult from './GameResult.vue';
+import DiscardAdvisorVue from './DiscardAdvisor.vue';
 
 const {
   gameState,
@@ -118,6 +125,7 @@ const {
   playerAnGang,
   playerPass,
   playerHu,
+  discardAdvice,
 } = useGame();
 
 const aiResult = ref<AnalysisResult | null>(null);
