@@ -51,7 +51,12 @@ export function robotDiscard(hand: Tile[], ghostType: TileType, ghostValue: numb
   const nonGhost = hand.filter(
     t => !(t.type === ghostType && t.value === ghostValue),
   );
-  return nonGhost[Math.floor(Math.random() * nonGhost.length)];
+  if (nonGhost.length > 0) {
+    return nonGhost[Math.floor(Math.random() * nonGhost.length)];
+  }
+
+  // 手牌只剩鬼牌，无奈只能丢鬼牌
+  return hand[0];
 }
 
 /**
