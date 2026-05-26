@@ -38,6 +38,89 @@ export interface DiscardRecommendation {
   currentShanten: number;
 }
 
+export interface ReactionAnalysis {
+  discardedTile: { type: TileType; value: number };
+  currentShanten: number;
+  pengResult: {
+    bestShanten: number;
+    bestDiscard: Tile;
+    acceptanceCount: number;
+    acceptanceTiles: AcceptanceTile[];
+  } | null;
+  mingGangResult: {
+    shanten: number;
+    acceptanceCount: number;
+    acceptanceTiles: AcceptanceTile[];
+  } | null;
+}
+
+export function getReactionAnalysis(
+  hand: Tile[],
+  discardedTile: Tile,
+  ghostType: TileType | null,
+  ghostValue: number | null,
+  meldCount: number,
+  options: { peng: boolean; mingGang: boolean },
+): ReactionAnalysis {
+  const currentShanten = calculateShanten(hand, ghostType, ghostValue, meldCount);
+
+  let pengResult: ReactionAnalysis['pengResult'] = null;
+  let mingGangResult: ReactionAnalysis['mingGangResult'] = null;
+
+  if (options.peng) {
+    let removed = 0;
+    const afterPeng = hand.filter(t => {
+      if (removed < 2 && t.type === discardedTile.type && t.value === discardedTile.value) {
+        removed++;
+        return false;
+      }
+      return true;
+    });
+    const rec = getDiscardRecommendation(afterPeng, ghostType, ghostValue, meldCount + 1);
+    if (rec.evaluations.length > 0) {
+      const best = rec.evaluations[0];
+      pengResult = {
+        bestShanten: best.shanten,
+        bestDiscard: best.discardTile,
+        acceptanceCount: best.acceptanceCount,
+        acceptanceTiles: best.acceptanceTiles,
+      };
+    }
+  }
+
+  if (options.mingGang) {
+    let removed = 0;
+    const afterGang = hand.filter(t => {
+      if (removed < 3 && t.type === discardedTile.type && t.value === discardedTile.value) {
+        removed++;
+        return false;
+      }
+      return true;
+    });
+    const gangShanten = calculateShanten(afterGang, ghostType, ghostValue, meldCount + 1);
+    const acceptanceTiles: AcceptanceTile[] = [];
+    for (const { type, value } of ALL_TILE_TYPES) {
+      const testHand = [...afterGang, { type, value, id: -1 }];
+      const newShanten = calculateShanten(testHand, ghostType, ghostValue, meldCount + 1);
+      if (newShanten < gangShanten) {
+        acceptanceTiles.push({ type, value, maxCount: 4 });
+      }
+    }
+    mingGangResult = {
+      shanten: gangShanten,
+      acceptanceCount: acceptanceTiles.length,
+      acceptanceTiles,
+    };
+  }
+
+  return {
+    discardedTile: { type: discardedTile.type, value: discardedTile.value },
+    currentShanten,
+    pengResult,
+    mingGangResult,
+  };
+}
+
 export function getDiscardRecommendation(
   hand: Tile[],
   ghostType: TileType | null,

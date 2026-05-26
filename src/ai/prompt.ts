@@ -1,5 +1,5 @@
 import type { GameState, MeldType } from '../engine/types';
-import type { DiscardRecommendation } from '../engine/advisor';
+import type { DiscardRecommendation, ReactionAnalysis } from '../engine/advisor';
 import { getTileName } from '../engine/tile';
 
 const MELD_TYPE_NAMES: Record<MeldType, string> = {
@@ -49,7 +49,7 @@ export function buildSystemPrompt(): string {
 \`\`\``;
 }
 
-export function buildUserPrompt(game: GameState, playerIndex: number, discardAdvice?: DiscardRecommendation): string {
+export function buildUserPrompt(game: GameState, playerIndex: number, discardAdvice?: DiscardRecommendation, reactionAnalysis?: ReactionAnalysis): string {
   const lines: string[] = [];
 
   // Current player's hand
@@ -115,6 +115,22 @@ export function buildUserPrompt(game: GameState, playerIndex: number, discardAdv
       lines.push(`${i + 1}. 打${tileName}：向听数=${e.shanten}，进张数=${e.acceptanceCount}${e.shanten === 0 && waiting ? `，听牌：${waiting}` : ''}（进张：${acceptance}）`);
     }
     lines.push(`\n请从以上10个建议中选择最优的一个出牌，给出你的决策。`);
+  } else if (reactionAnalysis && game.phase === 'reaction') {
+    lines.push(`\n### 算法计算的碰杠分析`);
+    const discardName = getTileName({ type: reactionAnalysis.discardedTile.type, value: reactionAnalysis.discardedTile.value, id: -1 });
+    lines.push(`对方打出：${discardName}`);
+    lines.push(`- 过牌：${reactionAnalysis.currentShanten}向听`);
+    if (reactionAnalysis.pengResult) {
+      const p = reactionAnalysis.pengResult;
+      const accStr = p.acceptanceTiles.map(a => getTileName({ type: a.type, value: a.value, id: -1 })).join('、');
+      lines.push(`- 碰后出${getTileName(p.bestDiscard)}最优：${p.bestShanten}向听，进张数=${p.acceptanceCount}（进张：${accStr}）`);
+    }
+    if (reactionAnalysis.mingGangResult) {
+      const m = reactionAnalysis.mingGangResult;
+      const accStr = m.acceptanceTiles.map(a => getTileName({ type: a.type, value: a.value, id: -1 })).join('、');
+      lines.push(`- 明杠（摸牌前）：${m.shanten}向听，进张数=${m.acceptanceCount}（进张：${accStr}）`);
+    }
+    lines.push(`\n请根据以上碰杠分析，结合牌河和对手副露情况，判断是否应该碰/杠还是过牌。`);
   } else {
     lines.push(`\n请分析当前局面并给出建议。`);
   }

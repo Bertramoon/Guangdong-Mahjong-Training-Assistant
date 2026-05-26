@@ -67,6 +67,11 @@
         :current-shanten="discardAdvice.currentShanten"
       />
 
+      <ReactionAdvisorVue
+        v-if="reactionAdvice"
+        :analysis="reactionAdvice"
+      />
+
       <GameResult
         :show="(gameState.phase === 'hu' || gameState.phase === 'draw_end') && !revealMode"
         :winner="gameState.winner"
@@ -104,6 +109,7 @@ import GameBoard from './GameBoard.vue';
 import ActionPanel from './ActionPanel.vue';
 import GameResult from './GameResult.vue';
 import DiscardAdvisorVue from './DiscardAdvisor.vue';
+import ReactionAdvisorVue from './ReactionAdvisor.vue';
 
 const {
   gameState,
@@ -126,6 +132,7 @@ const {
   playerPass,
   playerHu,
   discardAdvice,
+  reactionAdvice,
 } = useGame();
 
 const aiResult = ref<AnalysisResult | null>(null);
@@ -141,7 +148,7 @@ async function analyzeCurrentGame() {
   aiLoading.value = true;
   aiError.value = '';
   aiResult.value = null;
-  const result = await analyzeGame(aiConfig.value, gameState.value, 0, discardAdvice.value ?? undefined);
+  const result = await analyzeGame(aiConfig.value, gameState.value, 0, discardAdvice.value ?? undefined, reactionAdvice.value ?? undefined);
   aiResult.value = result;
   if (result.error) aiError.value = result.error;
   aiLoading.value = false;

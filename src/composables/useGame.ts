@@ -9,7 +9,7 @@ import { isSelfHu } from '../engine/hu';
 import { getTileName } from '../engine/tile';
 import { canJiaGang, getJiaGangCandidates, canAnGang, getAnGangCandidates, canPeng, canMingGang } from '../engine/meld';
 import { robotDiscard, robotShouldPeng, robotShouldMingGang, robotShouldJiaGang } from '../robot/robot';
-import { getDiscardRecommendation, type DiscardRecommendation } from '../engine/advisor';
+import { getDiscardRecommendation, getReactionAnalysis, type DiscardRecommendation, type ReactionAnalysis } from '../engine/advisor';
 
 export function useGame() {
   const gameState = ref<GameState | null>(null);
@@ -35,6 +35,21 @@ export function useGame() {
         game.ghostType,
         game.ghostValue,
         game.melds[0].length,
+      );
+    } catch {
+      return null;
+    }
+  });
+
+  const reactionAdvice = computed<ReactionAnalysis | null>(() => {
+    const game = gameState.value;
+    if (!game || game.phase !== 'reaction' || game.currentPlayer !== 0 || !game.lastDiscard) return null;
+    const hand = game.hands[0];
+    const tile = game.lastDiscard;
+    try {
+      return getReactionAnalysis(
+        hand, tile, game.ghostType, game.ghostValue, game.melds[0].length,
+        { peng: canPeng(hand, tile), mingGang: canMingGang(hand, tile) },
       );
     } catch {
       return null;
@@ -450,5 +465,6 @@ export function useGame() {
     playerHu,
     addLog,
     discardAdvice,
+    reactionAdvice,
   };
 }
