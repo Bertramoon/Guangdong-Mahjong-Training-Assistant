@@ -1,5 +1,6 @@
 import type { GameState, Tile, TileType } from './types';
 import { createAllTiles } from './tile';
+import { createRNG } from './rng';
 import { shuffleWall, drawInitialHands, drawTile } from './wall';
 import { sortHand } from './hand';
 import { canPeng, canMingGang, createPeng, createMingGang, createAnGang, createJiaGang } from './meld';
@@ -11,7 +12,7 @@ export function nextPlayerAfter(player: number): number {
 
 export function createGame(dealerIndex: number = 0): GameState {
   const allTiles = createAllTiles();
-  const shuffled = shuffleWall(allTiles);
+  const shuffled = shuffleWall(allTiles, createRNG(Date.now()));
   const { hands, remaining } = drawInitialHands(shuffled, dealerIndex);
 
   const ghostDraw = drawTile(remaining);

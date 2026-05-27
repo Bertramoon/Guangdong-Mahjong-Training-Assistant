@@ -4,10 +4,10 @@ export function createWall(tiles: Tile[]): Tile[] {
   return [...tiles];
 }
 
-export function shuffleWall(tiles: Tile[]): Tile[] {
+export function shuffleWall(tiles: Tile[], rng: () => number): Tile[] {
   const wall = [...tiles];
   for (let i = wall.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [wall[i], wall[j]] = [wall[j], wall[i]];
   }
   return wall;
