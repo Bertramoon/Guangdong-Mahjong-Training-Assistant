@@ -1,3 +1,4 @@
+export * from './rng';
 export * from './types';
 export * from './tile';
 export * from './wall';
