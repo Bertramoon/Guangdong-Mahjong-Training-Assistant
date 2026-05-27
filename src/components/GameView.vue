@@ -2,12 +2,25 @@
   <div class="game-view">
     <div v-if="!gameState" class="start-screen">
       <h1>广东麻将训练助手</h1>
-      <button class="btn" @click="startGameAndAutoPlay">开始新游戏</button>
+      <div class="seed-panel">
+        <label class="seed-label">种子号（留空随机生成）</label>
+        <input
+          v-model="seedInput"
+          class="seed-input"
+          type="text"
+          placeholder="输入种子号重播牌局"
+          @keyup.enter="handleStart"
+        />
+        <button class="btn" @click="handleStart">开始新游戏</button>
+      </div>
     </div>
 
     <div v-else class="game-container">
       <div class="top-bar">
-        <span class="ghost-badge">鬼牌: {{ ghostName }}</span>
+        <div class="top-bar-info">
+          <span class="ghost-badge">鬼牌: {{ ghostName }}</span>
+          <span class="seed-badge">种子: {{ gameState.seed }}</span>
+        </div>
         <div class="top-bar-actions">
           <button v-if="revealMode" class="btn-new-game" @click="handleNewGame">再来一局</button>
           <button class="settings-btn" @click="showSettings = true">⚙ 设置</button>
@@ -76,8 +89,10 @@
         :show="(gameState.phase === 'hu' || gameState.phase === 'draw_end') && !revealMode"
         :winner="gameState.winner"
         :turn-count="gameState.turnCount"
+        :seed="gameState.seed"
         @new-game="handleNewGame"
         @view-details="revealMode = true"
+        @replay="handleReplay"
       />
 
       <div class="log-panel">
@@ -143,6 +158,18 @@ const revealMode = ref(false);
 const aiConfig = ref<AIProviderConfig>(loadAIConfig());
 const appSettings = ref<AppSettings>(loadSettings());
 
+const seedInput = ref('');
+
+function handleStart() {
+  const trimmed = seedInput.value.trim();
+  const seed = trimmed ? parseInt(trimmed, 10) : undefined;
+  if (trimmed && (isNaN(seed!) || seed! <= 0)) {
+    return;
+  }
+  seedInput.value = '';
+  startGameAndAutoPlay(seed);
+}
+
 async function analyzeCurrentGame() {
   if (!gameState.value || aiLoading.value) return;
   aiLoading.value = true;
@@ -163,7 +190,13 @@ function onSaveSettings(config: AIProviderConfig, settings: AppSettings) {
 
 function handleNewGame() {
   revealMode.value = false;
+  seedInput.value = '';
   startGameAndAutoPlay();
+}
+
+function handleReplay(seed: number) {
+  revealMode.value = false;
+  startGameAndAutoPlay(seed);
 }
 
 watch(() => gameState.value?.phase, (phase) => {
@@ -206,6 +239,33 @@ watch(() => gameState.value?.phase, (phase) => {
   color: #fff;
 }
 .start-screen .btn:hover { background: #2277bb; }
+.seed-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.seed-label {
+  color: #aaa;
+  font-size: 14px;
+}
+.seed-input {
+  width: 280px;
+  padding: 10px 16px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+}
+.seed-input::placeholder {
+  color: #777;
+}
+.seed-input:focus {
+  outline: none;
+  border-color: #3388cc;
+}
 .game-container {
   display: flex;
   flex-direction: column;
@@ -225,6 +285,18 @@ watch(() => gameState.value?.phase, (phase) => {
   color: #ffd700;
   background: rgba(0,0,0,0.3);
   padding: 4px 12px;
+  border-radius: 4px;
+}
+.top-bar-info {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.seed-badge {
+  font-size: 13px;
+  color: #aaa;
+  background: rgba(0,0,0,0.2);
+  padding: 4px 10px;
   border-radius: 4px;
 }
 .settings-btn {

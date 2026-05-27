@@ -126,8 +126,8 @@ export function useGame() {
     canJiaGangNow.value = jiaGangOptions.value.length > 0;
   }
 
-  function startNewGame() {
-    let game = createGame(0);
+  function startNewGame(seed?: number) {
+    let game = createGame(0, seed);
     // 庄家已有14张牌（初始发牌时已多摸一张），直接进入出牌阶段
     if (game.currentPlayer === 0 && game.hands[0].length === 14) {
       game = { ...game, phase: 'discard' as const };
@@ -142,6 +142,7 @@ export function useGame() {
     anGangOptions.value = [];
     highlightedTileIds.value = [];
     addLog(`新游戏开始！鬼牌: ${getTileName({ type: game.ghostType, value: game.ghostValue, id: -1 })}`);
+    addLog(`种子号: ${game.seed}`);
 
     updateActions(game);
   }
@@ -430,8 +431,8 @@ export function useGame() {
     }
   }
 
-  async function startGameAndAutoPlay(): Promise<void> {
-    startNewGame();
+  async function startGameAndAutoPlay(seed?: number): Promise<void> {
+    startNewGame(seed);
     await delay(300);
     await autoPlayUntilPlayer();
   }

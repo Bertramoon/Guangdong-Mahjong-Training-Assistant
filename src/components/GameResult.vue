@@ -3,8 +3,13 @@
     <div class="result-card">
       <h2 class="result-title">{{ titleText }}</h2>
       <p class="result-detail">{{ detailText }}</p>
+      <div class="seed-info">
+        <span>种子号: {{ seed }}</span>
+        <button class="btn-copy" @click="copySeed">{{ copied ? '已复制' : '复制' }}</button>
+      </div>
       <div class="result-actions">
         <button class="btn btn-primary" @click="$emit('view-details')">查看对局情况</button>
+        <button class="btn btn-secondary" @click="$emit('replay', seed)">重播本局</button>
         <button class="btn btn-secondary" @click="$emit('new-game')">再来一局</button>
       </div>
     </div>
@@ -12,17 +17,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
   show: boolean;
   winner: number | null;
   turnCount: number;
+  seed: number;
 }>();
 
 defineEmits<{
   'new-game': [];
   'view-details': [];
+  'replay': [seed: number];
 }>();
 
 const titleText = computed(() => {
@@ -32,6 +39,14 @@ const titleText = computed(() => {
 });
 
 const detailText = computed(() => `总局数: ${props.turnCount} 轮`);
+
+const copied = ref(false);
+
+function copySeed() {
+  navigator.clipboard.writeText(String(props.seed));
+  copied.value = true;
+  setTimeout(() => { copied.value = false; }, 2000);
+}
 </script>
 
 <style scoped>
@@ -61,6 +76,25 @@ const detailText = computed(() => `总局数: ${props.turnCount} 轮`);
   color: #666;
   margin-bottom: 24px;
 }
+.seed-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #888;
+}
+.btn-copy {
+  padding: 3px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+  font-size: 12px;
+}
+.btn-copy:hover { background: #f0f0f0; }
 .result-actions {
   display: flex;
   gap: 12px;
