@@ -12,7 +12,12 @@ import { canPeng, canMingGang, canAnGang, canJiaGang } from '../engine/meld';
  * 4. 无孤张时，丢弃双张中一张（优先丢价值低的）
  * 5. 极端情况：随机丢一张非鬼牌
  */
-export function robotDiscard(hand: Tile[], ghostType: TileType, ghostValue: number): Tile {
+export function robotDiscard(
+  hand: Tile[],
+  ghostType: TileType,
+  ghostValue: number,
+  rng: () => number = Math.random,
+): Tile {
   const singles = findSingles(hand);
 
   // 过滤掉鬼牌（绝不丢弃）
@@ -52,7 +57,7 @@ export function robotDiscard(hand: Tile[], ghostType: TileType, ghostValue: numb
     t => !(t.type === ghostType && t.value === ghostValue),
   );
   if (nonGhost.length > 0) {
-    return nonGhost[Math.floor(Math.random() * nonGhost.length)];
+    return nonGhost[Math.floor(rng() * nonGhost.length)];
   }
 
   // 手牌只剩鬼牌，无奈只能丢鬼牌

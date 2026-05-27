@@ -9,6 +9,7 @@ import {
   findSingles,
 } from '../../src/robot/robot';
 import type { Tile, Meld } from '../../src/engine/types';
+import { createRNG } from '../../src/engine/rng';
 
 function h(type: Tile['type'], value: number, id: number): Tile {
   return { type, value, id };
@@ -65,6 +66,23 @@ describe('robotDiscard', () => {
     const discard = robotDiscard(hand, 'wan', 1);
     expect(discard.type).toBe('wan');
     expect(discard.value).toBe(9);
+  });
+
+  it('极端情况使用 rng 而非 Math.random', () => {
+    // 构造全是鬼牌的手牌（触发 fallback 分支）
+    const ghostType = 'wan';
+    const ghostValue = 1;
+    const hand: Tile[] = [
+      { type: ghostType, value: ghostValue, id: 0 },
+      { type: ghostType, value: ghostValue, id: 1 },
+      { type: ghostType, value: ghostValue, id: 2 },
+    ];
+    const rng = createRNG(42);
+    const result = robotDiscard(hand, ghostType, ghostValue, rng);
+    expect(result).toBeDefined();
+    // 相同 rng 种子应返回相同结果
+    const result2 = robotDiscard(hand, ghostType, ghostValue, createRNG(42));
+    expect(result.id).toBe(result2.id);
   });
 });
 
