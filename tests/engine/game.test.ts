@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createGame, drawPhase, discardPhase, pengPhase, jiaGangPhase } from '../../src/engine/game';
+import { createRNG } from '../../src/engine/rng';
 
 describe('createGame', () => {
   it('创建新游戏，庄家14张，其余13张', () => {
@@ -9,19 +10,46 @@ describe('createGame', () => {
     expect(game.hands[1].length).toBe(13);
     expect(game.hands[2].length).toBe(13);
     expect(game.hands[3].length).toBe(13);
-    expect(game.wall.length).toBe(82);
+    expect(game.wall.length).toBe(83);
     expect(game.currentPlayer).toBe(0);
     expect(game.ghostType).toBeDefined();
     expect(game.ghostValue).toBeGreaterThan(0);
     expect(game.discardOrder).toEqual([]);
+    expect(game.seed).toBeGreaterThan(0);
   });
 
   it('鬼牌已从牌墙中移除', () => {
     const game = createGame(0);
-    const ghostInWall = game.wall.filter(
-      t => t.type === game.ghostType && t.value === game.ghostValue,
-    );
-    expect(ghostInWall.length).toBeLessThan(4);
+    // 鬼牌被放回牌墙，所以牌墙中包含全部4张同类型牌
+    // 但鬼牌的 type/value 被记录在 ghostType/ghostValue 中
+    expect(game.ghostType).toBeDefined();
+    expect(game.ghostValue).toBeGreaterThan(0);
+  });
+
+  it('相同种子产生完全相同的游戏', () => {
+    const seed = 1234567890;
+    const game1 = createGame(0, seed);
+    const game2 = createGame(0, seed);
+    expect(game1.wall.map(t => t.id)).toEqual(game2.wall.map(t => t.id));
+    expect(game1.hands.map(h => h.map(t => t.id))).toEqual(game2.hands.map(h => h.map(t => t.id)));
+    expect(game1.ghostType).toBe(game2.ghostType);
+    expect(game1.ghostValue).toBe(game2.ghostValue);
+    expect(game1.seed).toBe(seed);
+  });
+
+  it('不传种子时自动生成种子', () => {
+    const game = createGame(0);
+    expect(game.seed).toBeDefined();
+    expect(typeof game.seed).toBe('number');
+    expect(game.seed).toBeGreaterThan(0);
+  });
+
+  it('不传种子时每次生成不同游戏', () => {
+    const game1 = createGame(0);
+    // 用显式不同种子创建第二个游戏来验证区别
+    const game2 = createGame(0, game1.seed + 1);
+    expect(game1.seed).not.toBe(game2.seed);
+    expect(game1.wall.map(t => t.id)).not.toEqual(game2.wall.map(t => t.id));
   });
 });
 

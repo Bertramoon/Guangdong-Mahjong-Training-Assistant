@@ -10,9 +10,11 @@ export function nextPlayerAfter(player: number): number {
   return (player + 3) % 4;
 }
 
-export function createGame(dealerIndex: number = 0): GameState {
+export function createGame(dealerIndex: number = 0, seed?: number): GameState {
+  const actualSeed = seed ?? Date.now();
+  const rng = createRNG(actualSeed);
   const allTiles = createAllTiles();
-  const shuffled = shuffleWall(allTiles, createRNG(Date.now()));
+  const shuffled = shuffleWall(allTiles, rng);
   const { hands, remaining } = drawInitialHands(shuffled, dealerIndex);
 
   const ghostDraw = drawTile(remaining);
@@ -34,6 +36,7 @@ export function createGame(dealerIndex: number = 0): GameState {
     lastDiscard: null,
     lastDiscardPlayer: -1,
     winner: null,
+    seed: actualSeed,
   };
 
   return game;

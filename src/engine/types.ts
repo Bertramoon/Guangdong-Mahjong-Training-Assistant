@@ -58,6 +58,7 @@ export interface GameState {
   lastDiscard: Tile | null;   // 最近打出的一张牌（用于碰/杠判定）
   lastDiscardPlayer: number;  // 最近出牌的玩家
   winner: number | null;      // 胡牌玩家，-1 表示流局
+  seed: number;               // 本局种子号
 }
 
 /** 有效操作 */
