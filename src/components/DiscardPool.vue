@@ -6,9 +6,11 @@
         v-for="entry in discardEntries"
         :key="'d' + entry.tile.id"
         :tile="entry.tile"
-        :highlighted="matchedTileIds.includes(entry.tile.id)"
-        :enlarged="matchedTileIds.includes(entry.tile.id)"
+        :highlighted="matchedTileIds.includes(entry.tile.id) || isSameTileHovered(entry.tile)"
+        :enlarged="matchedTileIds.includes(entry.tile.id) || isSameTileHovered(entry.tile)"
         :player-wind="entry.playerIndex"
+        @mouseenter="hoveredTileKey = tileKey(entry.tile)"
+        @mouseleave="hoveredTileKey = null"
       />
     </div>
     <template v-if="wallTiles && wallTiles.length > 0">
@@ -29,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import type { Tile, TileType, DiscardEntry } from '../engine/types';
 import TileComponent from './TileComponent.vue';
 
@@ -40,6 +43,16 @@ const props = defineProps<{
   ghostType?: TileType;
   ghostValue?: number;
 }>();
+
+const hoveredTileKey = ref<string | null>(null);
+
+function tileKey(tile: Tile): string {
+  return `${tile.type}-${tile.value}`;
+}
+
+function isSameTileHovered(tile: Tile): boolean {
+  return hoveredTileKey.value !== null && tileKey(tile) === hoveredTileKey.value;
+}
 
 function wallTilePlayer(index: number): number {
   const offsets = [0, 3, 2, 1];
