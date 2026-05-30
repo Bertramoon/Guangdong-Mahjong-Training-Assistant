@@ -9,11 +9,15 @@ const KEYS = {
 export interface AppSettings {
   autoAnalysis: boolean;
   soundEnabled: boolean;
+  robotSmartDiscard: boolean;
+  robotCanHu: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
   autoAnalysis: false,
   soundEnabled: false,
+  robotSmartDiscard: false,
+  robotCanHu: false,
 };
 
 const DEFAULT_AI_CONFIG: AIProviderConfig = {
