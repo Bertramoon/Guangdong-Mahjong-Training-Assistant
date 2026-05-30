@@ -126,6 +126,8 @@ import GameResult from './GameResult.vue';
 import DiscardAdvisorVue from './DiscardAdvisor.vue';
 import ReactionAdvisorVue from './ReactionAdvisor.vue';
 
+const appSettings = ref<AppSettings>(loadSettings());
+
 const {
   gameState,
   selectedTile,
@@ -148,7 +150,7 @@ const {
   playerHu,
   discardAdvice,
   reactionAdvice,
-} = useGame();
+} = useGame(appSettings);
 
 const aiResult = ref<AnalysisResult | null>(null);
 const aiLoading = ref(false);
@@ -156,7 +158,6 @@ const aiError = ref('');
 const showSettings = ref(false);
 const revealMode = ref(false);
 const aiConfig = ref<AIProviderConfig>(loadAIConfig());
-const appSettings = ref<AppSettings>(loadSettings());
 
 const seedInput = ref('');
 
