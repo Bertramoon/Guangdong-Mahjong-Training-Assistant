@@ -38,6 +38,17 @@
         <span>机器人明牌（显示机器人手牌）</span>
       </label>
 
+      <div class="cache-field">
+        <span>出牌建议缓存：{{ cacheStatusText }}</span>
+        <button
+          class="btn-cache"
+          :disabled="cacheStatus === 'loading'"
+          @click="refresh"
+        >
+          {{ cacheStatus === 'loading' ? '缓存中...' : '刷新缓存' }}
+        </button>
+      </div>
+
       <div class="modal-buttons">
         <button class="btn-save" @click="onSave">保存</button>
         <button class="btn-cancel" @click="$emit('close')">取消</button>
@@ -47,9 +58,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import type { AIProviderConfig } from '../ai/provider';
 import type { AppSettings } from '../storage/store';
+import { useShantenCache } from '../composables/useShantenCache';
 
 const props = defineProps<{
   show: boolean;
@@ -64,6 +76,15 @@ const emit = defineEmits<{
 
 const localConfig = ref<AIProviderConfig>({ ...props.config });
 const localSettings = ref<AppSettings>({ ...props.settings });
+
+const { cacheStatus, cacheCount, refresh } = useShantenCache();
+
+const cacheStatusText = computed(() => {
+  if (cacheStatus.value === 'loading') return '缓存中...';
+  if (cacheStatus.value === 'ready') return `已缓存 ${cacheCount.value} 条`;
+  if (cacheStatus.value === 'none') return '未缓存';
+  return '未加载';
+});
 
 watch(() => props.show, (val) => {
   if (val) {
@@ -175,5 +196,32 @@ function onSave() {
 
 .btn-cancel:hover {
   background: #ddd;
+}
+
+.cache-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #555;
+}
+
+.btn-cache {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #3388cc;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-cache:hover {
+  background: #2277bb;
+}
+
+.btn-cache:disabled {
+  background: #aaa;
+  cursor: not-allowed;
 }
 </style>
