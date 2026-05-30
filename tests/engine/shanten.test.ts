@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import {
   tilesToCounts,
   suitMaxTaatsu,
   isNumberSuit,
   calculateShanten,
+  encodeSuitKey, getSuitCacheSize, loadSuitCache, clearSuitCache,
 } from '../../src/engine/shanten';
 import type { Tile, TileType } from '../../src/engine/types';
 
@@ -224,5 +225,48 @@ describe('shanten pair tracking regression', () => {
       h('g',1),h('g',2),h('g',3),h('g',4),h('g',6),
     ];
     expect(calculateShanten(hand, 'tiao', 6, 1)).toBe(0);
+  });
+});
+
+describe('suitMaxTaatsu cache', () => {
+  afterEach(() => {
+    clearSuitCache();
+  });
+
+  it('缓存命中返回相同结果', () => {
+    const counts = [1, 1, 1, 0, 0, 0, 0, 0, 0];
+    const result1 = suitMaxTaatsu(counts, true);
+    const result2 = suitMaxTaatsu(counts, true);
+    expect(result1.any).toEqual(result2.any);
+    expect(result1.withPair).toEqual(result2.withPair);
+  });
+
+  it('loadSuitCache 后 getSuitCacheSize 返回正确数量', () => {
+    const entries: [string, any][] = [
+      ['N:1,0,0,0,0,0,0,0,0', { any: [0], withPair: [-1] }],
+      ['H:2,0', { any: [1], withPair: [1] }],
+    ];
+    loadSuitCache(entries);
+    expect(getSuitCacheSize()).toBe(2);
+  });
+
+  it('clearSuitCache 清空缓存', () => {
+    suitMaxTaatsu([1, 0, 0, 0, 0, 0, 0, 0, 0], true);
+    expect(getSuitCacheSize()).toBeGreaterThan(0);
+    clearSuitCache();
+    expect(getSuitCacheSize()).toBe(0);
+  });
+
+  it('预加载的缓存能被 suitMaxTaatsu 命中', () => {
+    const counts = [2, 2, 2, 0, 0, 0, 0, 0, 0];
+    const key = encodeSuitKey(counts, true);
+    clearSuitCache();
+    const expected = suitMaxTaatsu(counts, true);
+    const entries: [string, any][] = [[key, expected]];
+    clearSuitCache();
+    loadSuitCache(entries);
+    const cached = suitMaxTaatsu(counts, true);
+    expect(cached.any).toEqual(expected.any);
+    expect(cached.withPair).toEqual(expected.withPair);
   });
 });

@@ -1,5 +1,35 @@
 import type { Tile, TileType } from './types';
 
+/** 模块级缓存 */
+const suitCache = new Map<string, SuitResult>();
+
+/** 将 count 数组编码为缓存 key */
+export function encodeSuitKey(counts: number[], isNumber: boolean): string {
+  return `${isNumber ? 'N' : 'H'}:${counts.join(',')}`;
+}
+
+/** 批量加载缓存条目 */
+export function loadSuitCache(entries: [string, SuitResult][]): void {
+  for (const [key, value] of entries) {
+    suitCache.set(key, value);
+  }
+}
+
+/** 获取所有缓存条目 */
+export function getSuitCacheEntries(): [string, SuitResult][] {
+  return Array.from(suitCache.entries());
+}
+
+/** 获取当前缓存条目数 */
+export function getSuitCacheSize(): number {
+  return suitCache.size;
+}
+
+/** 清空缓存 */
+export function clearSuitCache(): void {
+  suitCache.clear();
+}
+
 const SUIT_LENGTHS: Record<TileType, number> = {
   wan: 9, tiao: 9, tong: 9, feng: 4, jian: 3,
 };
@@ -25,6 +55,10 @@ export interface SuitResult {
 }
 
 export function suitMaxTaatsu(counts: number[], isNumber: boolean): SuitResult {
+  const key = encodeSuitKey(counts, isNumber);
+  const cached = suitCache.get(key);
+  if (cached) return cached;
+
   const totalTiles = counts.reduce((a, b) => a + b, 0);
   const maxM = Math.min(4, Math.floor(totalTiles / 3));
   const any = new Array(maxM + 1).fill(-1);
@@ -83,7 +117,9 @@ export function suitMaxTaatsu(counts: number[], isNumber: boolean): SuitResult {
   }
 
   search(0, 0, 0, false);
-  return { any, withPair };
+  const result = { any, withPair };
+  suitCache.set(key, result);
+  return result;
 }
 
 const ALL_SUITS: TileType[] = ['wan', 'tiao', 'tong', 'feng', 'jian'];
