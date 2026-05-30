@@ -33,6 +33,11 @@
         <span>机器人自摸胡（机器人摸牌后可自动胡牌）</span>
       </label>
 
+      <label class="checkbox-field">
+        <input v-model="localSettings.robotOpenHand" type="checkbox" />
+        <span>机器人明牌（显示机器人手牌）</span>
+      </label>
+
       <div class="modal-buttons">
         <button class="btn-save" @click="onSave">保存</button>
         <button class="btn-cancel" @click="$emit('close')">取消</button>

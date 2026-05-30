@@ -11,6 +11,7 @@ export interface AppSettings {
   soundEnabled: boolean;
   robotSmartDiscard: boolean;
   robotCanHu: boolean;
+  robotOpenHand: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -18,6 +19,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   soundEnabled: false,
   robotSmartDiscard: false,
   robotCanHu: false,
+  robotOpenHand: false,
 };
 
 const DEFAULT_AI_CONFIG: AIProviderConfig = {

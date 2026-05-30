@@ -41,7 +41,7 @@
         :current-player="gameState.currentPlayer"
         :phase="gameState.phase"
         :turn-text="`轮次: ${gameState.turnCount} | 当前: ${currentPlayerName}`"
-        :reveal-mode="revealMode"
+        :reveal-mode="revealMode || appSettings.robotOpenHand"
         :wall-tiles="revealMode ? gameState.wall : undefined"
         @select-tile="selectTile"
       />
