@@ -1,8 +1,5 @@
 import type { SuitResult } from './shanten';
 import {
-  suitMaxTaatsu,
-  getSuitCacheSize,
-  getSuitCacheEntries,
   clearSuitCache,
   loadSuitCache,
 } from './shanten';
@@ -56,21 +53,6 @@ async function openDB(): Promise<IDBDatabase> {
   });
 }
 
-async function saveToIndexedDB(entries: [string, SuitResult][]): Promise<void> {
-  const db = await openDB();
-  const tx = db.transaction(STORE_NAME, 'readwrite');
-  const store = tx.objectStore(STORE_NAME);
-  store.clear();
-  store.put(CURRENT_CACHE_VERSION, '__version__');
-  for (const [key, value] of entries) {
-    store.put(value, key);
-  }
-  return new Promise((resolve, reject) => {
-    tx.oncomplete = () => { db.close(); resolve(); };
-    tx.onerror = () => { db.close(); reject(tx.error); };
-  });
-}
-
 export async function loadFromIndexedDB(): Promise<{
   entries: [string, SuitResult][];
   version: number | null;
@@ -103,32 +85,48 @@ export async function loadFromIndexedDB(): Promise<{
   }
 }
 
-// --- 预计算生成 ---
+// --- 预计算生成（Web Worker） ---
 
 export async function generatePrecache(
   onProgress?: (count: number) => void,
 ): Promise<number> {
-  const allConfigs = [
-    ...enumerateCounts(9, 14).map(c => ({ counts: c, isNumber: true })),
-    ...enumerateCounts(4, 14).map(c => ({ counts: c, isNumber: false })),
-    ...enumerateCounts(3, 14).map(c => ({ counts: c, isNumber: false })),
-  ];
-
   clearSuitCache();
-  const BATCH_SIZE = 200;
 
-  for (let i = 0; i < allConfigs.length; i += BATCH_SIZE) {
-    const batch = allConfigs.slice(i, i + BATCH_SIZE);
-    for (const { counts, isNumber } of batch) {
-      suitMaxTaatsu(counts, isNumber);
-    }
-    onProgress?.(getSuitCacheSize());
-    await new Promise(r => setTimeout(r, 0));
-  }
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(
+      new URL('./shanten-worker.ts', import.meta.url),
+      { type: 'module' },
+    );
 
-  const entries = getSuitCacheEntries();
-  await saveToIndexedDB(entries);
-  return entries.length;
+    let lastReportTime = 0;
+
+    worker.onmessage = (e: MessageEvent) => {
+      const msg = e.data;
+
+      if (msg.type === 'batch') {
+        loadSuitCache(msg.entries);
+        // 节流：每 500ms 最多触发一次 Vue 响应式更新
+        const now = Date.now();
+        if (onProgress && now - lastReportTime >= 500) {
+          lastReportTime = now;
+          onProgress(msg.progress);
+        }
+      }
+
+      if (msg.type === 'done') {
+        worker.terminate();
+        if (onProgress) onProgress(msg.totalEntries);
+        resolve(msg.totalEntries);
+      }
+    };
+
+    worker.onerror = (e) => {
+      worker.terminate();
+      reject(new Error(`缓存计算失败: ${e.message}`));
+    };
+
+    worker.postMessage({ type: 'generate' });
+  });
 }
 
 // --- 对外接口 ---
