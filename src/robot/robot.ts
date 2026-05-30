@@ -1,6 +1,7 @@
 // src/robot/robot.ts
 import type { Tile, TileType, Meld } from '../engine/types';
 import { canPeng, canMingGang, canAnGang, canJiaGang } from '../engine/meld';
+import { getDiscardRecommendation } from '../engine/advisor';
 
 /**
  * 机器人选择一张手牌丢弃
@@ -17,7 +18,15 @@ export function robotDiscard(
   ghostType: TileType,
   ghostValue: number,
   rng: () => number = Math.random,
+  smartMode: boolean = false,
 ): Tile {
+  if (smartMode) {
+    const recommendation = getDiscardRecommendation(hand, ghostType, ghostValue, 0);
+    if (recommendation.evaluations.length > 0) {
+      return recommendation.evaluations[0].discardTile;
+    }
+  }
+
   const singles = findSingles(hand);
 
   // 过滤掉鬼牌（绝不丢弃）

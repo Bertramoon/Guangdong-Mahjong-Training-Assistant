@@ -10,6 +10,7 @@ import {
 } from '../../src/robot/robot';
 import type { Tile, Meld } from '../../src/engine/types';
 import { createRNG } from '../../src/engine/rng';
+import { getDiscardRecommendation } from '../../src/engine/advisor';
 
 function h(type: Tile['type'], value: number, id: number): Tile {
   return { type, value, id };
@@ -128,5 +129,45 @@ describe('robotShouldAnGang', () => {
   it('不足4张返回false', () => {
     const hand = [h('wan', 1, 0), h('wan', 1, 1), h('wan', 1, 2)];
     expect(robotShouldAnGang(hand)).toBe(false);
+  });
+});
+
+describe('robotDiscard smartMode', () => {
+  it('smartMode=true 时使用推荐算法 TOP 1', () => {
+    const hand: Tile[] = [
+      h('wan', 2, 0), h('wan', 3, 1), h('wan', 4, 2),
+      h('tiao', 5, 3), h('tiao', 6, 4), h('tiao', 7, 5),
+      h('tong', 1, 6), h('tong', 2, 7), h('tong', 3, 8),
+      h('feng', 1, 9), h('feng', 2, 10), h('feng', 3, 11),
+      h('jian', 1, 12),
+      h('wan', 1, 13),
+    ];
+    const smartDiscard = robotDiscard(hand, 'wan', 9, Math.random, true);
+
+    const rec = getDiscardRecommendation(hand, 'wan', 9, 0);
+    expect(rec.evaluations.length).toBeGreaterThan(0);
+    expect(smartDiscard.type).toBe(rec.evaluations[0].discardTile.type);
+    expect(smartDiscard.value).toBe(rec.evaluations[0].discardTile.value);
+  });
+
+  it('smartMode=false 时使用原有启发式逻辑', () => {
+    const hand: Tile[] = [
+      h('wan', 2, 0), h('wan', 3, 1), h('wan', 4, 2),
+      h('tiao', 5, 3), h('tiao', 6, 4), h('tiao', 7, 5),
+      h('tong', 1, 6), h('tong', 2, 7), h('tong', 3, 8),
+      h('feng', 1, 9), h('feng', 2, 10), h('feng', 3, 11),
+      h('jian', 1, 12),
+      h('wan', 1, 13),
+    ];
+    const discard = robotDiscard(hand, 'wan', 9, Math.random, false);
+    expect(discard).toBeDefined();
+  });
+
+  it('smartMode=true 但推荐为空时 fallback 到原有逻辑', () => {
+    const hand: Tile[] = [
+      h('wan', 1, 0), h('wan', 1, 1), h('wan', 1, 2),
+    ];
+    const discard = robotDiscard(hand, 'wan', 1, Math.random, true);
+    expect(discard).toBeDefined();
   });
 });
