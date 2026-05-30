@@ -111,8 +111,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useGame } from '../composables/useGame';
+import { useShantenCache } from '../composables/useShantenCache';
 import { canPeng, canMingGang } from '../engine/meld';
 import AIAnalysisPanel from './AIAnalysisPanel.vue';
 import SettingsModal from './SettingsModal.vue';
@@ -151,6 +152,12 @@ const {
   discardAdvice,
   reactionAdvice,
 } = useGame(appSettings);
+
+const { loadCache } = useShantenCache();
+
+onMounted(() => {
+  loadCache();
+});
 
 const aiResult = ref<AnalysisResult | null>(null);
 const aiLoading = ref(false);
