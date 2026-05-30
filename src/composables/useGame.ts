@@ -1,5 +1,7 @@
 import { ref, computed } from 'vue';
+import type { Ref } from 'vue';
 import type { GameState, Tile, TileType } from '../engine/types';
+import type { AppSettings } from '../storage/store';
 import {
   createGame, drawPhase, discardPhase,
   pengPhase, mingGangPhase, jiaGangPhase, anGangPhase,
@@ -11,7 +13,7 @@ import { canJiaGang, getJiaGangCandidates, canAnGang, getAnGangCandidates, canPe
 import { robotDiscard, robotShouldPeng, robotShouldMingGang, robotShouldJiaGang } from '../robot/robot';
 import { getDiscardRecommendation, getReactionAnalysis, type DiscardRecommendation, type ReactionAnalysis } from '../engine/advisor';
 
-export function useGame() {
+export function useGame(settings: Ref<AppSettings>) {
   const gameState = ref<GameState | null>(null);
   const selectedTile = ref<Tile | null>(null);
   const gameLog = ref<string[]>([]);
@@ -268,7 +270,7 @@ export function useGame() {
           const afterDraw = drawPhase(afterGang);
           gameState.value = afterDraw;
           if (afterDraw.phase === 'discard') {
-            const tile = robotDiscard(afterDraw.hands[i], afterDraw.ghostType, afterDraw.ghostValue);
+            const tile = robotDiscard(afterDraw.hands[i], afterDraw.ghostType, afterDraw.ghostValue, Math.random, settings.value.robotSmartDiscard);
             const afterDiscard = discardPhase(afterDraw, tile);
             addLog(`机器人${i}打出: ${getTileName(tile)}`);
             gameState.value = afterDiscard;
@@ -284,7 +286,7 @@ export function useGame() {
         gameState.value = afterPeng;
         // Peng: must discard
         if (afterPeng.phase === 'discard') {
-          const tile = robotDiscard(afterPeng.hands[i], afterPeng.ghostType, afterPeng.ghostValue);
+          const tile = robotDiscard(afterPeng.hands[i], afterPeng.ghostType, afterPeng.ghostValue, Math.random, settings.value.robotSmartDiscard);
           const afterDiscard = discardPhase(afterPeng, tile);
           addLog(`机器人${i}打出: ${getTileName(tile)}`);
           gameState.value = afterDiscard;
@@ -310,6 +312,15 @@ export function useGame() {
       const afterDraw = drawPhase(game);
       addLog(`机器人${player}摸牌`);
       gameState.value = afterDraw;
+      // Robot self-draw hu check
+      if (settings.value.robotCanHu) {
+        const robotHand = afterDraw.hands[player];
+        if (isSelfHu(robotHand, afterDraw.ghostType, afterDraw.ghostValue)) {
+          addLog(`机器人${player}自摸胡牌！`);
+          gameState.value = { ...afterDraw, phase: 'hu' as const, winner: player };
+          return;
+        }
+      }
       await delay(500);
 
       if (afterDraw.phase === 'draw_end' || afterDraw.phase === 'hu') return;
@@ -325,7 +336,7 @@ export function useGame() {
           await delay(500);
           // Must discard after jiaGang
           if (afterJiaGang.phase === 'discard') {
-            const tile = robotDiscard(afterJiaGang.hands[player], afterJiaGang.ghostType, afterJiaGang.ghostValue);
+            const tile = robotDiscard(afterJiaGang.hands[player], afterJiaGang.ghostType, afterJiaGang.ghostValue, Math.random, settings.value.robotSmartDiscard);
             const afterDiscard = discardPhase(afterJiaGang, tile);
             addLog(`机器人${player}打出: ${getTileName(tile)}`);
             gameState.value = afterDiscard;
@@ -335,7 +346,7 @@ export function useGame() {
       }
 
       // Normal discard
-      const tile = robotDiscard(afterDraw.hands[player], afterDraw.ghostType, afterDraw.ghostValue);
+      const tile = robotDiscard(afterDraw.hands[player], afterDraw.ghostType, afterDraw.ghostValue, Math.random, settings.value.robotSmartDiscard);
       const afterDiscard = discardPhase(afterDraw, tile);
       addLog(`机器人${player}打出: ${getTileName(tile)}`);
 
@@ -361,7 +372,7 @@ export function useGame() {
             const rd = drawPhase(g);
             gameState.value = rd;
             if (rd.phase === 'discard') {
-              const rdTile = robotDiscard(rd.hands[i], rd.ghostType, rd.ghostValue);
+              const rdTile = robotDiscard(rd.hands[i], rd.ghostType, rd.ghostValue, Math.random, settings.value.robotSmartDiscard);
               g = discardPhase(rd, rdTile);
               addLog(`机器人${i}打出: ${getTileName(rdTile)}`);
               gameState.value = g;
@@ -382,7 +393,7 @@ export function useGame() {
           addLog(`机器人${i}碰了: ${getTileName(tile)}`);
           gameState.value = g;
           if (g.phase === 'discard') {
-            const rdTile = robotDiscard(g.hands[i], g.ghostType, g.ghostValue);
+            const rdTile = robotDiscard(g.hands[i], g.ghostType, g.ghostValue, Math.random, settings.value.robotSmartDiscard);
             g = discardPhase(g, rdTile);
             addLog(`机器人${i}打出: ${getTileName(rdTile)}`);
             gameState.value = g;
