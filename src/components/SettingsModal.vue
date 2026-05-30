@@ -23,6 +23,16 @@
         <span>自动 AI 分析（每次轮到你时自动触发）</span>
       </label>
 
+      <label class="checkbox-field">
+        <input v-model="localSettings.robotSmartDiscard" type="checkbox" />
+        <span>机器人智能弃牌（基于向听数推荐算法）</span>
+      </label>
+
+      <label class="checkbox-field">
+        <input v-model="localSettings.robotCanHu" type="checkbox" />
+        <span>机器人自摸胡（机器人摸牌后可自动胡牌）</span>
+      </label>
+
       <div class="modal-buttons">
         <button class="btn-save" @click="onSave">保存</button>
         <button class="btn-cancel" @click="$emit('close')">取消</button>
