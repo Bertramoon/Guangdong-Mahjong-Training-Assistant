@@ -16,7 +16,7 @@
         <span class="advisor-shanten-val">{{ ev.shanten }}向听</span>
         <span class="advisor-acceptance">{{ ev.acceptanceCount }}进账</span>
         <div v-if="ev.waitingTiles.length > 0" class="advisor-waiting">
-          听: {{ ev.waitingTiles.map(w => tileName(w)).join(' ') }}
+          听: {{ ev.waitingTiles.map(w => tileName({ type: w.type, value: w.value, id: -1 })).join(' ') }}
         </div>
       </div>
     </div>

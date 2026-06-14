@@ -12,6 +12,7 @@ import { getTileName } from '../engine/tile';
 import { canJiaGang, getJiaGangCandidates, canAnGang, getAnGangCandidates, canPeng, canMingGang } from '../engine/meld';
 import { robotDiscard, robotShouldPeng, robotShouldMingGang, robotShouldJiaGang } from '../robot/robot';
 import { getDiscardRecommendation, getReactionAnalysis, type DiscardRecommendation, type ReactionAnalysis } from '../engine/advisor';
+import { calculateFan, type FanResult } from '../engine/scoring';
 
 export function useGame(settings: Ref<AppSettings>) {
   const gameState = ref<GameState | null>(null);
@@ -25,6 +26,7 @@ export function useGame(settings: Ref<AppSettings>) {
   const jiaGangOptions = ref<{ type: TileType; value: number }[]>([]);
   const anGangOptions = ref<{ type: TileType; value: number }[]>([]);
   const highlightedTileIds = ref<number[]>([]);
+  const lastHuResult = ref<FanResult | null>(null);
 
   const discardAdvice = computed<DiscardRecommendation | null>(() => {
     const game = gameState.value;
@@ -45,7 +47,8 @@ export function useGame(settings: Ref<AppSettings>) {
 
   const reactionAdvice = computed<ReactionAnalysis | null>(() => {
     const game = gameState.value;
-    if (!game || game.phase !== 'reaction' || game.currentPlayer !== 0 || !game.lastDiscard) return null;
+    // 仅当别人出牌、轮到玩家反应时才计算（玩家自己刚出牌后 lastDiscardPlayer===0，无需计算）
+    if (!game || game.phase !== 'reaction' || game.currentPlayer !== 0 || game.lastDiscardPlayer === 0 || !game.lastDiscard) return null;
     const hand = game.hands[0];
     const tile = game.lastDiscard;
     try {
@@ -143,6 +146,7 @@ export function useGame(settings: Ref<AppSettings>) {
     jiaGangOptions.value = [];
     anGangOptions.value = [];
     highlightedTileIds.value = [];
+    lastHuResult.value = null;
     addLog(`新游戏开始！鬼牌: ${getTileName({ type: game.ghostType, value: game.ghostValue, id: -1 })}`);
     addLog(`种子号: ${game.seed}`);
 
@@ -171,11 +175,15 @@ export function useGame(settings: Ref<AppSettings>) {
     selectedTile.value = null;
     highlightedTileIds.value = [];
 
-    // After player discards, robots may react
+    // After player discards, robots may react.
+    // 用 setTimeout 延后到下一事件循环，让浏览器先把玩家的出牌渲染出来，
+    // 否则机器人回合同步逻辑会在渲染前执行，造成点击后卡顿。
     if (next.phase === 'reaction') {
-      handleRobotReactions(next).then(() => {
-        autoPlayUntilPlayer();
-      });
+      setTimeout(() => {
+        handleRobotReactions(next)
+          .then(() => autoPlayUntilPlayer())
+          .catch(err => console.error('robot reactions error', err));
+      }, 0);
     }
   }
 
@@ -196,7 +204,7 @@ export function useGame(settings: Ref<AppSettings>) {
     // Gang: draw replacement tile then enter discard phase
     if (afterGang.phase === 'draw') {
       const oldIds = new Set(afterGang.hands[0].map(t => t.id));
-      const afterDraw = drawPhase(afterGang);
+      const afterDraw = drawPhase(afterGang, 'gang_replacement');
       const newTile = afterDraw.hands[0].find(t => !oldIds.has(t.id));
       highlightedTileIds.value = newTile ? [newTile.id] : [];
       addLog('你摸牌');
@@ -236,12 +244,19 @@ export function useGame(settings: Ref<AppSettings>) {
     gameState.value = next;
     highlightedTileIds.value = [];
 
-    autoPlayUntilPlayer();
+    autoPlayUntilPlayer().catch(err => console.error('autoplay error', err));
   }
 
   function playerHu() {
     const game = gameState.value;
     if (!game) return;
+    lastHuResult.value = calculateFan(
+      game.hands[0],
+      game.melds[0],
+      game.ghostType,
+      game.ghostValue,
+      { isSelfDraw: true, isKongBlossom: game.lastDrawSource === 'gang_replacement' },
+    );
     const next = { ...game, phase: 'hu' as const, winner: 0 };
     addLog('你胡了！');
     gameState.value = next;
@@ -267,7 +282,7 @@ export function useGame(settings: Ref<AppSettings>) {
         gameState.value = afterGang;
         // Gang: draw then discard
         if (afterGang.phase === 'draw') {
-          const afterDraw = drawPhase(afterGang);
+          const afterDraw = drawPhase(afterGang, 'gang_replacement');
           gameState.value = afterDraw;
           if (afterDraw.phase === 'discard') {
             const tile = robotDiscard(afterDraw.hands[i], afterDraw.ghostType, afterDraw.ghostValue, Math.random, settings.value.robotSmartDiscard);
@@ -317,6 +332,13 @@ export function useGame(settings: Ref<AppSettings>) {
         const robotHand = afterDraw.hands[player];
         if (isSelfHu(robotHand, afterDraw.ghostType, afterDraw.ghostValue)) {
           addLog(`机器人${player}自摸胡牌！`);
+          lastHuResult.value = calculateFan(
+            robotHand,
+            afterDraw.melds[player],
+            afterDraw.ghostType,
+            afterDraw.ghostValue,
+            { isSelfDraw: true, isKongBlossom: afterDraw.lastDrawSource === 'gang_replacement' },
+          );
           gameState.value = { ...afterDraw, phase: 'hu' as const, winner: player };
           return;
         }
@@ -369,7 +391,7 @@ export function useGame(settings: Ref<AppSettings>) {
           addLog(`机器人${i}明杠了: ${getTileName(tile)}`);
           gameState.value = g;
           if (g.phase === 'draw') {
-            const rd = drawPhase(g);
+            const rd = drawPhase(g, 'gang_replacement');
             gameState.value = rd;
             if (rd.phase === 'discard') {
               const rdTile = robotDiscard(rd.hands[i], rd.ghostType, rd.ghostValue, Math.random, settings.value.robotSmartDiscard);
@@ -459,6 +481,7 @@ export function useGame(settings: Ref<AppSettings>) {
     jiaGangOptions,
     anGangOptions,
     highlightedTileIds,
+    lastHuResult,
     matchedTileIds,
     currentPlayerName,
     playerHand,

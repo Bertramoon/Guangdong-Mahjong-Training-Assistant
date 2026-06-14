@@ -3,6 +3,10 @@
     <div class="result-card">
       <h2 class="result-title">{{ titleText }}</h2>
       <p class="result-detail">{{ detailText }}</p>
+      <div v-if="fanDisplay" class="fan-info">
+        <div class="fan-list">{{ fanDisplay.fanText }}</div>
+        <div class="fan-total">{{ fanDisplay.totalFan }} 番 / {{ fanDisplay.score }} 分</div>
+      </div>
       <div class="seed-info">
         <span>种子号: {{ seed }}</span>
         <button class="btn-copy" @click="copySeed">{{ copied ? '已复制' : '复制' }}</button>
@@ -18,12 +22,14 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import type { FanResult } from '../engine/scoring';
 
 const props = defineProps<{
   show: boolean;
   winner: number | null;
   turnCount: number;
   seed: number;
+  huResult?: FanResult | null;
 }>();
 
 defineEmits<{
@@ -32,6 +38,8 @@ defineEmits<{
   'replay': [seed: number];
 }>();
 
+const PATTERN_FANS = ['清一色', '混一色', '字一色', '碰碰胡', '平和', '七对'];
+
 const titleText = computed(() => {
   if (props.winner === 0) return '你赢了！';
   if (props.winner === -1 || props.winner === null) return '流局';
@@ -39,6 +47,17 @@ const titleText = computed(() => {
 });
 
 const detailText = computed(() => `总局数: ${props.turnCount} 轮`);
+
+const fanDisplay = computed(() => {
+  if (!props.huResult || props.winner === null || props.winner < 0) return null;
+  const ctxFans = props.huResult.fans.filter(f => !PATTERN_FANS.includes(f.name));
+  const hasPattern = props.huResult.fans.some(f => PATTERN_FANS.includes(f.name));
+  const ctxText = ctxFans.map(f => `${f.name} +${f.value}`).join(' · ');
+  const fanText = hasPattern
+    ? props.huResult.fans.map(f => `${f.name} +${f.value}`).join(' · ')
+    : `鸡胡${ctxText ? ' · ' + ctxText : ''}`;
+  return { fanText, totalFan: props.huResult.totalFan, score: props.huResult.score };
+});
 
 const copied = ref(false);
 
@@ -75,6 +94,23 @@ function copySeed() {
   font-size: 16px;
   color: #666;
   margin-bottom: 24px;
+}
+.fan-info {
+  background: #f6f8fb;
+  border: 1px solid #e0e6ee;
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin-bottom: 20px;
+}
+.fan-list {
+  font-size: 15px;
+  color: #334;
+  margin-bottom: 6px;
+}
+.fan-total {
+  font-size: 18px;
+  font-weight: bold;
+  color: #cc3333;
 }
 .seed-info {
   display: flex;

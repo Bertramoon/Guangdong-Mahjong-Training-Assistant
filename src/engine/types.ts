@@ -57,6 +57,7 @@ export interface GameState {
   history: TurnRecord[];      // 操作历史
   lastDiscard: Tile | null;   // 最近打出的一张牌（用于碰/杠判定）
   lastDiscardPlayer: number;  // 最近出牌的玩家
+  lastDrawSource: 'normal' | 'gang_replacement'; // 最近一次摸牌来源（杠上开花判定）
   winner: number | null;      // 胡牌玩家，-1 表示流局
   seed: number;               // 本局种子号
 }

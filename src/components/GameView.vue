@@ -90,13 +90,19 @@
         :winner="gameState.winner"
         :turn-count="gameState.turnCount"
         :seed="gameState.seed"
+        :hu-result="lastHuResult"
         @new-game="handleNewGame"
         @view-details="revealMode = true"
         @replay="handleReplay"
       />
 
       <div class="log-panel">
-        <div v-for="(msg, i) in gameLog.slice(-8)" :key="i" class="log-line">{{ msg }}</div>
+        <div
+          v-for="(msg, i) in gameLog.slice(-8)"
+          :key="i"
+          class="log-line"
+          :style="{ color: logColor(msg) }"
+        >{{ msg }}</div>
       </div>
     </div>
 
@@ -111,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useGame } from '../composables/useGame';
 import { useShantenCache } from '../composables/useShantenCache';
 import { canPeng, canMingGang } from '../engine/meld';
@@ -138,6 +144,7 @@ const {
   anGangOptions,
   highlightedTileIds,
   matchedTileIds,
+  lastHuResult,
   currentPlayerName,
   ghostName,
   startGameAndAutoPlay,
@@ -157,6 +164,11 @@ const { loadCache } = useShantenCache();
 
 onMounted(() => {
   loadCache();
+  window.addEventListener('keydown', onKeyDown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeyDown);
 });
 
 const aiResult = ref<AnalysisResult | null>(null);
@@ -207,6 +219,64 @@ function handleReplay(seed: number) {
   startGameAndAutoPlay(seed);
 }
 
+/** 按日志内容着色：胡=红、杠=紫、你=白、机器人=灰、其余=浅灰 */
+function logColor(msg: string): string {
+  if (msg.includes('胡')) return '#ff7777';
+  if (msg.includes('杠')) return '#cc77dd';
+  if (msg.startsWith('你')) return '#ffffff';
+  if (msg.startsWith('机器人')) return '#9a9a9a';
+  return '#cccccc';
+}
+
+/** 键盘移动手牌选择（出牌阶段） */
+function moveSelection(dir: -1 | 1) {
+  const hand = gameState.value?.hands[0] ?? [];
+  if (hand.length === 0) return;
+  let idx = selectedTile.value
+    ? hand.findIndex(t => t.id === selectedTile.value!.id)
+    : -1;
+  if (idx === -1) {
+    idx = dir === 1 ? 0 : hand.length - 1;
+  } else {
+    idx = (idx + dir + hand.length) % hand.length;
+  }
+  selectedTile.value = hand[idx];
+}
+
+/** 全局键盘快捷键 */
+function onKeyDown(e: KeyboardEvent) {
+  const tag = (document.activeElement?.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea') return;
+  const game = gameState.value;
+  if (!game) return;
+
+  const isDiscard = game.phase === 'discard' && game.currentPlayer === 0;
+  const isReaction = game.phase === 'reaction' && game.lastDiscardPlayer !== 0 && game.lastDiscard;
+
+  if (isDiscard) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      moveSelection(e.key === 'ArrowLeft' ? -1 : 1);
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      if (selectedTile.value) { e.preventDefault(); playerDiscard(); }
+    } else if (e.key === 'h' || e.key === 'H') {
+      if (canHuNow.value) { e.preventDefault(); playerHu(); }
+    }
+    return;
+  }
+
+  if (isReaction && game.lastDiscard) {
+    const tile = game.lastDiscard;
+    if (e.key === 'p' || e.key === 'P') {
+      if (canPeng(game.hands[0], tile)) { e.preventDefault(); playerPeng(); }
+    } else if (e.key === 'm' || e.key === 'M') {
+      if (canMingGang(game.hands[0], tile)) { e.preventDefault(); playerMingGang(); }
+    } else if (e.key === 'g' || e.key === 'G') {
+      e.preventDefault(); playerPass();
+    }
+  }
+}
+
 watch(() => gameState.value?.phase, (phase) => {
   if (phase === 'hu' || phase === 'draw_end') {
     saveGameSummary({
@@ -218,6 +288,16 @@ watch(() => gameState.value?.phase, (phase) => {
     });
   }
 });
+
+/** 自动 AI 分析：进入玩家出牌阶段时触发（仅在开启且配置了 API Key 时） */
+watch(
+  () => gameState.value?.phase === 'discard' && gameState.value?.currentPlayer === 0,
+  (isPlayerTurn, wasPlayerTurn) => {
+    if (isPlayerTurn && !wasPlayerTurn && appSettings.value.autoAnalysis && aiConfig.value.apiKey) {
+      analyzeCurrentGame();
+    }
+  },
+);
 </script>
 
 <style scoped>

@@ -35,6 +35,7 @@ export function createGame(dealerIndex: number = 0, seed?: number): GameState {
     history: [],
     lastDiscard: null,
     lastDiscardPlayer: -1,
+    lastDrawSource: 'normal',
     winner: null,
     seed: actualSeed,
   };
@@ -78,7 +79,10 @@ export function discardPhase(game: GameState, tile: Tile): GameState {
   };
 }
 
-export function drawPhase(game: GameState): GameState {
+export function drawPhase(
+  game: GameState,
+  source: 'normal' | 'gang_replacement' = 'normal',
+): GameState {
   if (game.phase !== 'draw') {
     throw new Error(`Cannot draw in phase: ${game.phase}`);
   }
@@ -102,6 +106,7 @@ export function drawPhase(game: GameState): GameState {
     hands: newHands,
     phase: 'discard',
     turnCount: game.turnCount + 1,
+    lastDrawSource: source,
   };
 }
 
@@ -163,8 +168,8 @@ export function mingGangPhase(game: GameState, playerIndex: number): GameState {
   };
 }
 
-export function anGangPhase(game: GameState, type: string, value: number): GameState {
-  const result = createAnGang(game.hands[game.currentPlayer], type as any, value);
+export function anGangPhase(game: GameState, type: TileType, value: number): GameState {
+  const result = createAnGang(game.hands[game.currentPlayer], type, value);
   if (!result) throw new Error('Cannot an_gang');
   const newHands = game.hands.map((h, i) =>
     i === game.currentPlayer ? result.hand : [...h],
@@ -183,16 +188,17 @@ export function anGangPhase(game: GameState, type: string, value: number): GameS
     wall,
     phase: 'discard',
     lastDiscard: null,
+    lastDrawSource: 'gang_replacement',
   };
 }
 
 /** 执行加杠（摸牌后，手中有第4张且已碰过该牌） */
-export function jiaGangPhase(game: GameState, type: string, value: number): GameState {
+export function jiaGangPhase(game: GameState, type: TileType, value: number): GameState {
   const player = game.currentPlayer;
   const result = createJiaGang(
     game.hands[player],
     game.melds[player],
-    type as TileType,
+    type,
     value,
   );
   if (!result) throw new Error('Cannot jia_gang');
@@ -217,6 +223,7 @@ export function jiaGangPhase(game: GameState, type: string, value: number): Game
     wall,
     phase: 'discard',
     lastDiscard: null,
+    lastDrawSource: 'gang_replacement',
   };
 }
 

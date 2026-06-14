@@ -8,7 +8,6 @@ const KEYS = {
 
 export interface AppSettings {
   autoAnalysis: boolean;
-  soundEnabled: boolean;
   robotSmartDiscard: boolean;
   robotCanHu: boolean;
   robotOpenHand: boolean;
@@ -16,7 +15,6 @@ export interface AppSettings {
 
 const DEFAULT_SETTINGS: AppSettings = {
   autoAnalysis: false,
-  soundEnabled: false,
   robotSmartDiscard: false,
   robotCanHu: false,
   robotOpenHand: false,
