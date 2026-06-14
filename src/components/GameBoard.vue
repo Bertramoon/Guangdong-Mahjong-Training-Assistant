@@ -12,6 +12,7 @@
         :matched-tile-ids="matchedTileIds"
         :ghost-type="ghostType"
         :ghost-value="ghostValue"
+        :tenpai="topPlayerTenpai"
       />
     </div>
 
@@ -28,6 +29,7 @@
           :matched-tile-ids="matchedTileIds"
           :ghost-type="ghostType"
           :ghost-value="ghostValue"
+          :tenpai="leftPlayerTenpai"
         />
       </div>
 
@@ -47,6 +49,7 @@
           :matched-tile-ids="matchedTileIds"
           :ghost-type="ghostType"
           :ghost-value="ghostValue"
+          :tenpai="rightPlayerTenpai"
         />
       </div>
     </div>
@@ -70,6 +73,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Tile, Meld, TileType, DiscardEntry } from '../engine/types';
+import { calculateShanten } from '../engine/shanten';
 import PlayerHand from './PlayerHand.vue';
 import MeldArea from './MeldArea.vue';
 import DiscardPool from './DiscardPool.vue';
@@ -115,6 +119,13 @@ const rightPlayerMelds = computed(() => props.melds[3]);
 const leftPlayerDiscards = computed(() => props.discards[1]);
 const topPlayerDiscards = computed(() => props.discards[2]);
 const rightPlayerDiscards = computed(() => props.discards[3]);
+
+// 听牌判定：向听数 === 0。computed 缓存，仅在 hands/melds/鬼牌变化时重算。
+const isTenpai = (i: number) =>
+  calculateShanten(props.hands[i], props.ghostType, props.ghostValue, props.melds[i].length) === 0;
+const leftPlayerTenpai = computed(() => isTenpai(1));
+const topPlayerTenpai = computed(() => isTenpai(2));
+const rightPlayerTenpai = computed(() => isTenpai(3));
 </script>
 
 <style scoped>
