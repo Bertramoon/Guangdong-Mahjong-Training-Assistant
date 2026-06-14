@@ -60,53 +60,62 @@ const isGhost = computed(() => {
 
 <style scoped>
 .tile {
-  width: 48px;
-  height: 64px;
-  border-radius: 6px;
-  border: 1px solid #999;
-  background: #fffef5;
+  position: relative;
+  width: var(--tile-w, 48px);
+  height: var(--tile-h, 64px);
+  border-radius: var(--radius-tile);
+  border: 1px solid var(--color-tile-edge);
+  background: var(--color-tile-face);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   user-select: none;
-  transition: transform 0.15s, box-shadow 0.15s;
   flex-shrink: 0;
   overflow: hidden;
+  /* 纵深 = 彩色环（风位/高亮，默认无） + 深度阴影（默认静止态） */
+  box-shadow: var(--tile-ring, none), var(--tile-shadow, var(--shadow-tile-rest));
+  transition:
+    transform var(--dur-fast) var(--ease-spring),
+    box-shadow var(--dur-fast) var(--ease-out);
 }
 .tile:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transform: translateY(-6px);
+  --tile-shadow: var(--shadow-tile-hover);
+  z-index: var(--z-tile-raised);
 }
 .tile--selected {
-  transform: translateY(-12px);
-  box-shadow: 0 4px 12px rgba(0,100,200,0.4);
-  border-color: #0066cc;
+  transform: translateY(-14px);
+  --tile-shadow: var(--shadow-tile-selected);
+  z-index: var(--z-tile-raised);
 }
 .tile--back {
-  background: #1a5276;
+  background: linear-gradient(160deg, var(--color-tile-back) 0%, var(--color-tile-back-edge) 100%);
   color: #fff;
   cursor: default;
-  border-color: #0d3b5e;
+  border-color: var(--color-tile-back-edge);
 }
 .tile--ghost {
-  background: #ffe8e8;
-  border-color: #ff4444;
+  background: var(--color-ghost-face);
+  border-color: var(--color-ghost-edge);
 }
 .tile--transparent {
   opacity: 0.45;
 }
-.tile--wind-south { border: 2px solid #cc2222; box-shadow: 0 0 4px rgba(204,34,34,0.5); }
-.tile--wind-west { border: 2px solid #ffffff; box-shadow: 0 0 4px rgba(255,255,255,0.5); }
-.tile--wind-north { border: 2px solid #222222; box-shadow: 0 0 4px rgba(34,34,34,0.5); }
-.tile--wind-east { border: 2px solid #22aa22; box-shadow: 0 0 4px rgba(34,170,34,0.5); }
+/* 风位：用 ring 变量叠加彩色环，不占布局、不与纵深阴影冲突 */
+.tile--wind-south { --tile-ring: 0 0 0 2px var(--color-wind-south); }
+.tile--wind-west  { --tile-ring: 0 0 0 2px var(--color-wind-west); }
+.tile--wind-north { --tile-ring: 0 0 0 2px var(--color-wind-north); }
+.tile--wind-east  { --tile-ring: 0 0 0 2px var(--color-wind-east); }
 .tile--highlighted {
-  border: 2px solid #ffd700 !important;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6) !important;
+  --tile-ring: 0 0 12px rgba(255, 215, 0, 0.45);
+  outline: 2px solid rgba(255, 215, 0, 0.55);
+  outline-offset: 1px;
+  animation: highlightPulse 1.4s ease-in-out infinite;
 }
 .tile--enlarged {
   transform: scale(1.2);
-  z-index: 1;
+  z-index: var(--z-tile-raised);
 }
 .tile__face {
   width: 100%;

@@ -48,10 +48,10 @@ const meldDirection = computed(() =>
   align-items: center;
   gap: 4px;
 }
-.other-name { font-size: 13px; color: #ccc; }
+.other-name { font-size: var(--font-sm); color: var(--color-text-muted); }
 .other-hand { display: flex; gap: 1px; }
-.other-hand :deep(.tile) { width: 28px; height: 38px; font-size: 10px; }
+.other-hand :deep(.tile) { --tile-w: 28px; --tile-h: 38px; --tile-shadow: var(--shadow-tile-mini); font-size: 10px; }
 .other-discards { display: flex; gap: 1px; }
-.other-discards :deep(.tile) { width: 24px; height: 32px; font-size: 8px; }
+.other-discards :deep(.tile) { --tile-w: 24px; --tile-h: 32px; --tile-shadow: var(--shadow-tile-mini); font-size: 8px; }
 .other-melds { opacity: 0.85; }
 </style>

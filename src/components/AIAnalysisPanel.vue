@@ -1,8 +1,8 @@
 <template>
-  <div class="ai-analysis-panel">
+  <div class="ai-analysis-panel glass-panel">
     <div class="ai-header">
       <span class="ai-title">AI 分析</span>
-      <button class="ai-btn" :disabled="loading" @click="$emit('analyze')">
+      <button class="btn btn--primary btn--sm" :disabled="loading" @click="$emit('analyze')">
         {{ loading ? '分析中...' : '分析当前牌面' }}
       </button>
     </div>
@@ -34,12 +34,10 @@ defineEmits<{
 
 <style scoped>
 .ai-analysis-panel {
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 8px;
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   width: 100%;
   max-width: 500px;
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 .ai-header {
@@ -49,53 +47,38 @@ defineEmits<{
 }
 
 .ai-title {
-  font-size: 15px;
-  font-weight: bold;
-}
-
-.ai-btn {
-  padding: 6px 16px;
-  background: #3388cc;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.ai-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  font-size: var(--font-md);
+  font-weight: 700;
 }
 
 .ai-loading {
-  color: #ffd700;
-  margin-top: 8px;
+  color: var(--color-gold);
+  margin-top: var(--space-2);
 }
 
 .ai-error {
-  color: #ff6666;
-  margin-top: 8px;
+  color: var(--color-danger);
+  margin-top: var(--space-2);
 }
 
 .ai-result {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
-  font-size: 13px;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--font-sm);
   line-height: 1.5;
 }
 
 .ai-recommendation {
-  color: #5f5;
+  color: var(--color-success);
 }
 
 .ai-reasoning {
-  color: #ccc;
+  color: var(--color-text-muted);
 }
 
 .ai-alternative {
-  color: #99c;
+  color: var(--color-info);
 }
 </style>

@@ -1,0 +1,127 @@
+/*
+ * Design Tokens —— 设计体系地基
+ * 所有颜色/间距/圆角/阴影/字体/时长/层级集中于此，组件内严禁裸写色值。
+ */
+
+:root {
+  /* —— 调色板原料（刻度，供语义色引用） —— */
+  --color-blue-500: #2f7fc9;
+  --color-blue-600: #2277bb;   /* 替代散落的 #3388cc */
+  --color-gold-400: #ffd76a;
+  --color-gold-500: #f5b73d;   /* 替代散落的 #ffd700 */
+  --color-red-500:   #cc3333;
+  --color-purple-500: #9933cc;
+  --color-purple-600: #8822bb;
+  --color-peng: #cc8833;
+  --color-peng-600: #b87722;
+  --color-slate-500: #5a6473;  /* 通用次级按钮色，浅/深背景均清晰 */
+  --color-slate-600: #4a5260;
+
+  /* —— 语义色 —— */
+  --color-felt-deep: #0d2b0d;
+  --color-felt-mid:  #1a4a1a;
+  --color-felt-hi:   #2d6a2d;
+
+  --color-accent: var(--color-blue-500);
+  --color-accent-hover: var(--color-blue-600);
+  --color-gold:   var(--color-gold-400);
+  --color-danger: var(--color-red-500);
+  --color-success: #5fcf6a;   /* 替代散落的 #5f5 */
+  --color-info:    #7fc4ff;   /* 替代散落的 #9cf */
+  --color-warning: #ffa500;
+
+  --color-text:          #2a2a2a;
+  --color-text-inverse:  #f5f5f5;
+  --color-text-muted:    #8a8a8a;
+
+  /* 半透明面（玻璃面板底/边） */
+  --color-surface:         rgba(255, 255, 255, 0.08);
+  --color-surface-strong:  rgba(255, 255, 255, 0.14);
+  --color-surface-border:  rgba(255, 255, 255, 0.18);
+  /* 玻璃面板专用：深色半透明底（保持通透感），配合 base.css 的顶部高光/光泽 */
+  --color-glass-bg:        rgba(18, 30, 22, 0.5);
+  --color-glass-bg-strong: rgba(15, 25, 18, 0.55);
+  --color-glass-border:    rgba(255, 255, 255, 0.22);
+
+  /* 弃牌池风向色（区分弃牌者） */
+  --color-wind-south: #cc2222;
+  --color-wind-west:  #ffffff;
+  --color-wind-north: #2a2a2a;
+  --color-wind-east:  #22aa22;
+
+  /* —— 间距（4px 基准） —— */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* —— 圆角 —— */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --radius-tile: 6px;
+
+  /* —— 阴影层级 —— */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow-focus: 0 0 0 3px rgba(47, 127, 201, 0.45);
+
+  /* 牌纵深核心：顶部 inset 高光 + 底部两层投影，模拟厚度 */
+  --shadow-tile-rest:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    0 6px 10px rgba(0, 0, 0, 0.18);
+  --shadow-tile-hover:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 6px 10px rgba(0, 0, 0, 0.28),
+    0 14px 22px rgba(0, 0, 0, 0.22);
+  --shadow-tile-selected:
+    0 0 0 2px var(--color-accent),
+    0 10px 18px rgba(0, 100, 200, 0.35),
+    0 18px 28px rgba(0, 0, 0, 0.25);
+  /* 小牌（牌池/对手）用的轻量纵深，保护满牌池性能 */
+  --shadow-tile-mini:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 1px 3px rgba(0, 0, 0, 0.3);
+
+  /* 牌面专用色（仅 TileComponent 使用） */
+  --color-tile-face: #fffef5;
+  --color-tile-edge: rgba(0, 0, 0, 0.16);
+  --color-tile-back: #1a5276;
+  --color-tile-back-edge: #0d3b5e;
+  --color-ghost-face: #ffe8e8;
+  --color-ghost-edge: #ff4444;
+
+  /* —— 字号 / 字体 —— */
+  --font-xs: 12px;
+  --font-sm: 13px;
+  --font-md: 14px;
+  --font-lg: 16px;
+  --font-xl: 20px;
+  --font-2xl: 28px;
+
+  --font-family-ui: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+  --font-family-display: 'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif;
+  --font-family-tile: 'Noto Serif SC', 'SimSun', serif;
+
+  /* —— 时长 / 缓动 —— */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+  --dur-slower: 600ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* —— z-index 层级 —— */
+  --z-board: 1;
+  --z-tile-raised: 5;
+  --z-panel: 50;
+  --z-overlay: 100;
+  --z-modal: 200;
+  --z-toast: 300;
+}

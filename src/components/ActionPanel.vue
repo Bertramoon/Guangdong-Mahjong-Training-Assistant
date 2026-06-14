@@ -67,29 +67,29 @@ const hasActions = computed(() => {
 <style scoped>
 .action-panel {
   display: flex;
-  gap: 10px;
+  gap: var(--space-3);
   min-height: 44px;
   flex-wrap: wrap;
   justify-content: center;
 }
-.btn {
-  padding: 10px 24px;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
-  cursor: pointer;
-  color: #fff;
-  transition: background 0.2s;
+/* 颜色变体；基底 .btn 由全局 base.css 提供（统一形状/阴影/按压） */
+.btn--peng {
+  background: linear-gradient(180deg, var(--color-peng) 0%, var(--color-peng-600) 100%);
 }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn--primary { background: #3388cc; }
-.btn--primary:hover:not(:disabled) { background: #2277bb; }
-.btn--peng { background: #cc8833; }
-.btn--peng:hover { background: #b87722; }
-.btn--gang { background: #9933cc; }
-.btn--gang:hover { background: #8822bb; }
-.btn--hu { background: #cc3333; font-size: 18px; font-weight: bold; }
-.btn--hu:hover { background: #bb2222; }
-.btn--pass { background: #666; }
-.btn--pass:hover { background: #555; }
+.btn--peng:hover { filter: brightness(1.06); }
+.btn--gang {
+  background: linear-gradient(180deg, var(--color-purple-500) 0%, var(--color-purple-600) 100%);
+}
+.btn--gang:hover { filter: brightness(1.06); }
+.btn--hu {
+  background: linear-gradient(180deg, #e05a5a 0%, var(--color-danger) 100%);
+  font-size: var(--font-lg);
+  font-weight: 700;
+  animation: huBreathe 1.6s ease-in-out infinite;
+}
+.btn--hu:hover { filter: brightness(1.06); }
+.btn--pass {
+  background: var(--color-slate-500);
+}
+.btn--pass:hover { background: var(--color-slate-600); }
 </style>

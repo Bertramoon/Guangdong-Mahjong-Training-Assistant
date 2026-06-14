@@ -1,7 +1,7 @@
 <template>
   <div class="discard-pool">
     <div class="discard-title">弃牌池</div>
-    <div class="discard-grid">
+    <TransitionGroup name="drop" tag="div" class="discard-grid">
       <TileComponent
         v-for="entry in discardEntries"
         :key="'d' + entry.tile.id"
@@ -12,7 +12,7 @@
         @mouseenter="hoveredTileKey = tileKey(entry.tile)"
         @mouseleave="hoveredTileKey = null"
       />
-    </div>
+    </TransitionGroup>
     <template v-if="wallTiles && wallTiles.length > 0">
       <div class="discard-title wall-title">剩余牌墙</div>
       <div class="discard-grid wall-grid">
@@ -67,26 +67,28 @@ function wallTilePlayer(index: number): number {
   align-items: center;
   gap: 4px;
 }
-.discard-title { font-size: 12px; color: #999; }
+.discard-title { font-size: var(--font-xs); color: var(--color-text-muted); }
 .discard-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
-  min-width: 280px;
+  min-width: 0;
   justify-content: center;
 }
 .discard-grid :deep(.tile) {
-  width: 32px;
-  height: 42px;
+  --tile-w: 32px;
+  --tile-h: 42px;
+  --tile-shadow: var(--shadow-tile-mini);
   font-size: 10px;
 }
 .wall-title {
-  color: #aaa;
-  margin-top: 4px;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
 }
 .wall-grid :deep(.tile) {
-  width: 32px;
-  height: 42px;
+  --tile-w: 32px;
+  --tile-h: 42px;
+  --tile-shadow: var(--shadow-tile-mini);
   font-size: 10px;
 }
 </style>

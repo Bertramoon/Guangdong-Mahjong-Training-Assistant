@@ -38,21 +38,26 @@ function typeLabel(type: string): string {
 <style scoped>
 .meld-area {
   display: flex;
-  gap: 12px;
-  padding: 4px 8px;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-2);
 }
 .meld-area.column {
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 .meld-group {
   display: flex;
   gap: 2px;
   align-items: flex-end;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-sm);
 }
 .meld-type-label {
-  font-size: 11px;
-  color: #999;
-  margin-left: 4px;
+  font-size: var(--font-xs);
+  color: var(--color-text-muted);
+  margin-left: var(--space-1);
+  align-self: center;
 }
 </style>

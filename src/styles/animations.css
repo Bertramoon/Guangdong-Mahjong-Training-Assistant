@@ -1,0 +1,86 @@
+/*
+ * 动效集中区 —— keyframes 与可复用动画/过渡 class。
+ * 性能约定：只动 transform / opacity / box-shadow / filter / outline，避免触发布局与大面积重绘。
+ */
+
+/* —— 通用入场 —— */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* —— 牌高亮脉冲（仅动 outline，不碰 box-shadow 纵深） —— */
+@keyframes highlightPulse {
+  0%, 100% { outline-color: rgba(255, 215, 0, 0.5); outline-offset: 1px; }
+  50%      { outline-color: var(--color-gold);      outline-offset: 2px; }
+}
+
+/* —— 自摸胡按钮呼吸（仅动 box-shadow 光晕） —— */
+@keyframes huBreathe {
+  0%, 100% { box-shadow: var(--shadow-sm), 0 0 0 rgba(204, 51, 51, 0); }
+  50%      { box-shadow: var(--shadow-md), 0 0 18px rgba(204, 51, 51, 0.55); }
+}
+
+/* —— 番数明细逐项入场 —— */
+@keyframes fanChipIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.92); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* —— 胡牌标题弹入 —— */
+@keyframes winPop {
+  0%   { opacity: 0; transform: scale(0.6); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* —— 弹窗过渡：背景淡入 + 卡片上浮缩放 —— */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+.modal-enter-active .modal-card,
+.modal-leave-active .modal-card,
+.modal-enter-active .result-card,
+.modal-leave-active .result-card {
+  transition: transform var(--dur-slow) var(--ease-spring);
+}
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+.modal-enter-from .modal-card,
+.modal-leave-to .modal-card,
+.modal-enter-from .result-card,
+.modal-leave-to .result-card {
+  transform: translateY(24px) scale(0.94);
+}
+
+/* —— 发牌 / 弃牌进入离开 ——
+ * 刻意不定义 xxx-move：手牌每次摸牌都会重排，启用 move 会让满手牌持续 shuffle，
+ * 这里只让新增牌滑入、弃牌淡出，重排瞬间完成。 */
+.deal-enter-active,
+.deal-leave-active,
+.drop-enter-active,
+.drop-leave-active {
+  transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+}
+.deal-enter-from,
+.deal-leave-to,
+.drop-enter-from,
+.drop-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+/* 无障碍：尊重系统“减少动态”偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

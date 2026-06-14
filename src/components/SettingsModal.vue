@@ -1,6 +1,7 @@
 <template>
+  <Transition name="modal">
   <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
-    <div class="modal-card">
+    <div class="modal-card glass-panel glass-panel--strong">
       <h2>设置</h2>
 
       <label class="field">
@@ -41,7 +42,7 @@
       <div class="cache-field">
         <span>出牌建议缓存：{{ cacheStatusText }}</span>
         <button
-          class="btn-cache"
+          class="btn btn--primary btn--sm"
           :disabled="cacheStatus === 'loading'"
           @click="refresh"
         >
@@ -50,11 +51,12 @@
       </div>
 
       <div class="modal-buttons">
-        <button class="btn-save" @click="onSave">保存</button>
-        <button class="btn-cancel" @click="$emit('close')">取消</button>
+        <button class="btn btn--primary" @click="onSave">保存</button>
+        <button class="btn btn--secondary" @click="$emit('close')">取消</button>
       </div>
     </div>
   </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -103,57 +105,62 @@ function onSave() {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 200;
+  z-index: var(--z-modal);
 }
 
 .modal-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 32px;
+  padding: var(--space-8);
   max-width: 420px;
   width: 90%;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .modal-card h2 {
   margin: 0;
-  font-size: 20px;
-  color: #333;
+  font-size: var(--font-xl);
+  color: var(--color-text-inverse);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 14px;
-  color: #555;
+  gap: var(--space-1);
+  font-size: var(--font-md);
+  color: var(--color-text-inverse);
 }
 
 .field input {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-inverse);
+  font-size: var(--font-md);
   outline: none;
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.field input::placeholder {
+  color: var(--color-text-muted);
 }
 
 .field input:focus {
-  border-color: #3388cc;
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-focus);
 }
 
 .checkbox-field {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #555;
+  gap: var(--space-2);
+  font-size: var(--font-md);
+  color: var(--color-text-inverse);
   cursor: pointer;
 }
 
@@ -161,67 +168,21 @@ function onSave() {
   width: 16px;
   height: 16px;
   cursor: pointer;
+  accent-color: var(--color-accent);
 }
 
 .modal-buttons {
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
   justify-content: flex-end;
-  margin-top: 8px;
-}
-
-.btn-save {
-  padding: 8px 24px;
-  border: none;
-  border-radius: 4px;
-  background: #3388cc;
-  color: #fff;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.btn-save:hover {
-  background: #2277bb;
-}
-
-.btn-cancel {
-  padding: 8px 24px;
-  border: none;
-  border-radius: 4px;
-  background: #eee;
-  color: #333;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.btn-cancel:hover {
-  background: #ddd;
+  margin-top: var(--space-2);
 }
 
 .cache-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 14px;
-  color: #555;
-}
-
-.btn-cache {
-  padding: 6px 16px;
-  border: none;
-  border-radius: 4px;
-  background: #3388cc;
-  color: #fff;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.btn-cache:hover {
-  background: #2277bb;
-}
-
-.btn-cache:disabled {
-  background: #aaa;
-  cursor: not-allowed;
+  font-size: var(--font-md);
+  color: var(--color-text-inverse);
 }
 </style>

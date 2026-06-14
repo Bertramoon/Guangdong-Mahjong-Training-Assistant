@@ -144,21 +144,21 @@ export function getTileSVG(tile: Tile): string {
       }
       break;
     case 'wan':
-      body = `<text x="22" y="16" text-anchor="middle" dominant-baseline="central" font-size="18" font-weight="bold" fill="#2a52be" font-family="SimSun,serif">${NUM_CHARS[tile.value - 1]}</text>`
-        + `<text x="22" y="40" text-anchor="middle" dominant-baseline="central" font-size="18" font-weight="bold" fill="#cc1111" font-family="SimSun,serif">萬</text>`;
+      body = `<text x="22" y="16" text-anchor="middle" dominant-baseline="central" font-size="18" font-weight="bold" fill="#2a52be" font-family="'Noto Serif SC',SimSun,serif">${NUM_CHARS[tile.value - 1]}</text>`
+        + `<text x="22" y="40" text-anchor="middle" dominant-baseline="central" font-size="18" font-weight="bold" fill="#cc1111" font-family="'Noto Serif SC',SimSun,serif">萬</text>`;
       break;
     case 'feng': {
       const chars = '东南西北';
-      body = `<text x="22" y="32" text-anchor="middle" dominant-baseline="central" font-size="26" font-weight="bold" fill="#222" font-family="SimSun,serif">${chars[tile.value - 1]}</text>`;
+      body = `<text x="22" y="32" text-anchor="middle" dominant-baseline="central" font-size="26" font-weight="bold" fill="#222" font-family="'Noto Serif SC',SimSun,serif">${chars[tile.value - 1]}</text>`;
       break;
     }
     case 'jian':
       if (tile.value === 1) {
         body = `<rect x="6" y="8" width="32" height="44" rx="4" fill="#cc1111" stroke="#990000" stroke-width="1"/>`
-          + `<text x="22" y="32" text-anchor="middle" dominant-baseline="central" font-size="28" font-weight="bold" fill="#fff" font-family="SimSun,serif">中</text>`;
+          + `<text x="22" y="32" text-anchor="middle" dominant-baseline="central" font-size="28" font-weight="bold" fill="#fff" font-family="'Noto Serif SC',SimSun,serif">中</text>`;
       } else if (tile.value === 2) {
         body = `<rect x="6" y="8" width="32" height="44" rx="4" fill="#008800" stroke="#005500" stroke-width="1"/>`
-          + `<text x="22" y="32" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="bold" fill="#fff" font-family="SimSun,serif">發</text>`;
+          + `<text x="22" y="32" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="bold" fill="#fff" font-family="'Noto Serif SC',SimSun,serif">發</text>`;
       } else {
         body = `<rect x="8" y="10" width="28" height="40" rx="4" fill="#f5f5f0" stroke="#aaa" stroke-width="2"/>`
           + `<rect x="12" y="14" width="20" height="32" rx="2" fill="none" stroke="#ccc" stroke-width="1"/>`;

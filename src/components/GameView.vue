@@ -11,7 +11,7 @@
           placeholder="输入种子号重播牌局"
           @keyup.enter="handleStart"
         />
-        <button class="btn" @click="handleStart">开始新游戏</button>
+        <button class="btn btn--primary btn--lg" @click="handleStart">开始新游戏</button>
       </div>
     </div>
 
@@ -22,8 +22,8 @@
           <span class="seed-badge">种子: {{ gameState.seed }}</span>
         </div>
         <div class="top-bar-actions">
-          <button v-if="revealMode" class="btn-new-game" @click="handleNewGame">再来一局</button>
-          <button class="settings-btn" @click="showSettings = true">⚙ 设置</button>
+          <button v-if="revealMode" class="btn btn--primary btn--sm" @click="handleNewGame">再来一局</button>
+          <button class="btn btn--ghost btn--sm" @click="showSettings = true">⚙ 设置</button>
         </div>
       </div>
 
@@ -96,7 +96,7 @@
         @replay="handleReplay"
       />
 
-      <div class="log-panel">
+      <div class="log-panel glass-panel">
         <div
           v-for="(msg, i) in gameLog.slice(-8)"
           :key="i"
@@ -312,21 +312,16 @@ watch(
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: var(--space-6);
   margin-top: 120px;
-  color: #fff;
+  color: var(--color-text-inverse);
+  animation: fadeInUp var(--dur-slow) var(--ease-out);
 }
-.start-screen h1 { font-size: 32px; }
-.start-screen .btn {
-  padding: 12px 32px;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  cursor: pointer;
-  background: #3388cc;
-  color: #fff;
+.start-screen h1 {
+  font-family: var(--font-family-display);
+  font-size: 32px;
+  letter-spacing: 2px;
 }
-.start-screen .btn:hover { background: #2277bb; }
 .seed-panel {
   display: flex;
   flex-direction: column;
@@ -334,25 +329,27 @@ watch(
   gap: 12px;
 }
 .seed-label {
-  color: #aaa;
-  font-size: 14px;
+  color: var(--color-text-muted);
+  font-size: var(--font-md);
 }
 .seed-input {
   width: 280px;
-  padding: 10px 16px;
-  border: 1px solid #555;
-  border-radius: 6px;
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  font-size: 16px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-inverse);
+  font-size: var(--font-lg);
   text-align: center;
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
 .seed-input::placeholder {
-  color: #777;
+  color: var(--color-text-muted);
 }
 .seed-input:focus {
   outline: none;
-  border-color: #3388cc;
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-focus);
 }
 .game-container {
   display: flex;
@@ -369,61 +366,41 @@ watch(
   padding: 0 8px;
 }
 .ghost-badge {
-  font-size: 14px;
-  color: #ffd700;
-  background: rgba(0,0,0,0.3);
-  padding: 4px 12px;
-  border-radius: 4px;
+  font-size: var(--font-md);
+  color: var(--color-gold);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
 }
 .top-bar-info {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
 }
 .seed-badge {
-  font-size: 13px;
-  color: #aaa;
-  background: rgba(0,0,0,0.2);
-  padding: 4px 10px;
-  border-radius: 4px;
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
 }
-.settings-btn {
-  padding: 6px 16px;
-  border: none;
-  border-radius: 4px;
-  background: rgba(255,255,255,0.15);
-  color: #fff;
-  cursor: pointer;
-  font-size: 13px;
-}
-.settings-btn:hover { background: rgba(255,255,255,0.25); }
 .top-bar-actions {
   display: flex;
   gap: 8px;
   align-items: center;
 }
-.btn-new-game {
-  padding: 6px 16px;
-  border: none;
-  border-radius: 4px;
-  background: #3388cc;
-  color: #fff;
-  cursor: pointer;
-  font-size: 13px;
-}
-.btn-new-game:hover { background: #2277bb; }
 .log-panel {
   width: 100%;
   max-width: 600px;
   max-height: 140px;
   overflow-y: auto;
-  background: rgba(0,0,0,0.4);
-  border-radius: 8px;
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
 }
 .log-line {
-  font-size: 13px;
-  color: #ccc;
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
   line-height: 1.6;
 }
 </style>

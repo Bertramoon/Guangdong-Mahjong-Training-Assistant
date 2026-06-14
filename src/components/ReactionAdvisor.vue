@@ -1,5 +1,5 @@
 <template>
-  <div class="reaction-advisor" v-if="analysis">
+  <div class="reaction-advisor glass-panel" v-if="analysis">
     <div class="advisor-header">
       <span class="advisor-title">碰杠建议</span>
       <span class="advisor-discard">对方打出: {{ discardedTileName }}</span>
@@ -75,73 +75,71 @@ const recommendationText = computed(() => {
 
 <style scoped>
 .reaction-advisor {
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 8px;
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   width: 100%;
   max-width: 500px;
-  color: #fff;
-  font-size: 13px;
+  color: var(--color-text-inverse);
+  font-size: var(--font-sm);
 }
 
 .advisor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 
 .advisor-title {
-  font-weight: bold;
-  font-size: 15px;
+  font-weight: 700;
+  font-size: var(--font-md);
 }
 
 .advisor-discard {
-  color: #ffa500;
+  color: var(--color-warning);
 }
 
 .advisor-options {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 
 .option-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
-  border-radius: 4px;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
 }
 
 .option-row.best {
-  background: rgba(255, 215, 0, 0.15);
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  background: rgba(255, 215, 0, 0.14);
+  border: 1px solid rgba(255, 215, 0, 0.35);
 }
 
 .option-action {
-  font-weight: bold;
+  font-weight: 700;
   min-width: 32px;
 }
 
 .option-shanten {
-  color: #aaa;
+  color: var(--color-text-muted);
 }
 
 .option-acceptance {
-  color: #5f5;
+  color: var(--color-success);
 }
 
 .option-detail {
-  color: #9cf;
-  font-size: 12px;
+  color: var(--color-info);
+  font-size: var(--font-xs);
 }
 
 .advisor-rec {
-  color: #ffd700;
-  font-size: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 6px;
+  color: var(--color-gold);
+  font-size: var(--font-xs);
+  border-top: 1px solid var(--color-surface-border);
+  padding-top: var(--space-2);
 }
 </style>

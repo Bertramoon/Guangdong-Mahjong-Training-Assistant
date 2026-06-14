@@ -1,5 +1,5 @@
 <template>
-  <div class="discard-advisor" v-if="evaluations.length > 0">
+  <div class="discard-advisor glass-panel" v-if="evaluations.length > 0">
     <div class="advisor-header">
       <span class="advisor-title">出牌建议</span>
       <span class="advisor-shanten">向听数: {{ currentShanten }}</span>
@@ -40,29 +40,27 @@ function tileName(t: Tile): string {
 
 <style scoped>
 .discard-advisor {
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 8px;
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   width: 100%;
   max-width: 500px;
-  color: #fff;
-  font-size: 13px;
+  color: var(--color-text-inverse);
+  font-size: var(--font-sm);
 }
 
 .advisor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 
 .advisor-title {
-  font-weight: bold;
-  font-size: 15px;
+  font-weight: 700;
+  font-size: var(--font-md);
 }
 
 .advisor-shanten {
-  color: #ffd700;
+  color: var(--color-gold);
 }
 
 .advisor-list {
@@ -74,43 +72,43 @@ function tileName(t: Tile): string {
 .advisor-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
-  border-radius: 4px;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
   flex-wrap: wrap;
 }
 
 .advisor-item.best {
-  background: rgba(255, 215, 0, 0.15);
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  background: rgba(255, 215, 0, 0.14);
+  border: 1px solid rgba(255, 215, 0, 0.35);
 }
 
 .advisor-rank {
   width: 20px;
   text-align: center;
-  color: #999;
+  color: var(--color-text-muted);
 }
 
 .advisor-item.best .advisor-rank {
-  color: #ffd700;
+  color: var(--color-gold);
 }
 
 .advisor-tile {
-  font-weight: bold;
+  font-weight: 700;
   min-width: 40px;
 }
 
 .advisor-shanten-val {
-  color: #aaa;
+  color: var(--color-text-muted);
 }
 
 .advisor-acceptance {
-  color: #5f5;
+  color: var(--color-success);
 }
 
 .advisor-waiting {
-  color: #9cf;
-  font-size: 12px;
+  color: var(--color-info);
+  font-size: var(--font-xs);
   width: 100%;
   padding-left: 28px;
 }

@@ -119,15 +119,47 @@ const rightPlayerDiscards = computed(() => props.discards[3]);
 
 <style scoped>
 .game-board {
+  position: relative;
+  isolation: isolate;
   width: 100%;
   max-width: 1100px;
   min-height: 700px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: radial-gradient(ellipse at center, #2d6a2d 0%, #1a4a1a 100%);
-  border-radius: 16px;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  /* 绒布径向渐变：顶部偏亮模拟顶光，向边缘变深 */
+  background: radial-gradient(ellipse at 50% 32%, var(--color-felt-hi) 0%, var(--color-felt-mid) 55%, var(--color-felt-deep) 100%);
+  border-radius: var(--radius-lg);
+  /* 双层木质内框 + 桌体浮起投影 */
+  box-shadow:
+    inset 0 0 0 6px #6b4423,
+    inset 0 0 0 8px #4a2f18,
+    var(--shadow-panel);
+  overflow: hidden;
+}
+
+/* 极细噪点纹理（静态 data-URI，无外部资源） */
+.game-board::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='120'%20height='120'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.85'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* 桌面中心柔光 */
+.game-board::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.07), transparent 60%);
+  pointer-events: none;
+  z-index: -1;
 }
 .board-top {
   display: flex;
@@ -138,13 +170,15 @@ const rightPlayerDiscards = computed(() => props.discards[3]);
   justify-content: space-between;
   align-items: center;
   flex: 1;
+  gap: var(--space-6);
 }
 .board-center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  min-width: 300px;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1 1 auto;
 }
 .ghost-indicator {
   font-size: 14px;
@@ -154,8 +188,12 @@ const rightPlayerDiscards = computed(() => props.discards[3]);
   border-radius: 4px;
 }
 .turn-info {
-  font-size: 14px;
-  color: #fff;
+  font-size: var(--font-md);
+  color: var(--color-text-inverse);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
 }
 .board-left, .board-right {
   display: flex;
@@ -165,6 +203,16 @@ const rightPlayerDiscards = computed(() => props.discards[3]);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
+}
+
+@media (max-width: 880px) {
+  .game-board {
+    padding: var(--space-2);
+    min-height: 600px;
+  }
+  .board-middle {
+    gap: var(--space-3);
+  }
 }
 </style>

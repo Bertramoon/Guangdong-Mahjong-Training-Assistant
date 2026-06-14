@@ -1,23 +1,36 @@
 <template>
+  <Transition name="modal">
   <div class="result-overlay" v-if="show">
-    <div class="result-card">
-      <h2 class="result-title">{{ titleText }}</h2>
+    <div class="result-card glass-panel glass-panel--strong">
+      <h2 class="result-title" :class="{
+        'result-title--win': winner === 0,
+        'result-title--draw': winner === -1 || winner === null,
+        'result-title--lose': winner !== 0 && winner !== -1 && winner !== null
+      }">{{ titleText }}</h2>
       <p class="result-detail">{{ detailText }}</p>
       <div v-if="fanDisplay" class="fan-info">
-        <div class="fan-list">{{ fanDisplay.fanText }}</div>
+        <div class="fan-list">
+          <span
+            v-for="(fan, i) in fanDisplay.items"
+            :key="fan.name"
+            class="fan-chip"
+            :style="{ '--i': i }"
+          >{{ fan.name }}<em v-if="fan.value > 0"> +{{ fan.value }}</em></span>
+        </div>
         <div class="fan-total">{{ fanDisplay.totalFan }} 番 / {{ fanDisplay.score }} 分</div>
       </div>
       <div class="seed-info">
         <span>种子号: {{ seed }}</span>
-        <button class="btn-copy" @click="copySeed">{{ copied ? '已复制' : '复制' }}</button>
+        <button class="btn btn--secondary btn--sm" @click="copySeed">{{ copied ? '已复制' : '复制' }}</button>
       </div>
       <div class="result-actions">
-        <button class="btn btn-primary" @click="$emit('view-details')">查看对局情况</button>
-        <button class="btn btn-secondary" @click="$emit('replay', seed)">重播本局</button>
-        <button class="btn btn-secondary" @click="$emit('new-game')">再来一局</button>
+        <button class="btn btn--primary btn--lg" @click="$emit('view-details')">查看对局情况</button>
+        <button class="btn btn--secondary btn--lg" @click="$emit('replay', seed)">重播本局</button>
+        <button class="btn btn--secondary btn--lg" @click="$emit('new-game')">再来一局</button>
       </div>
     </div>
   </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -52,11 +65,8 @@ const fanDisplay = computed(() => {
   if (!props.huResult || props.winner === null || props.winner < 0) return null;
   const ctxFans = props.huResult.fans.filter(f => !PATTERN_FANS.includes(f.name));
   const hasPattern = props.huResult.fans.some(f => PATTERN_FANS.includes(f.name));
-  const ctxText = ctxFans.map(f => `${f.name} +${f.value}`).join(' · ');
-  const fanText = hasPattern
-    ? props.huResult.fans.map(f => `${f.name} +${f.value}`).join(' · ')
-    : `鸡胡${ctxText ? ' · ' + ctxText : ''}`;
-  return { fanText, totalFan: props.huResult.totalFan, score: props.huResult.score };
+  const items = hasPattern ? props.huResult.fans : [{ name: '鸡胡', value: 0 }, ...ctxFans];
+  return { items, totalFan: props.huResult.totalFan, score: props.huResult.score };
 });
 
 const copied = ref(false);
@@ -79,78 +89,76 @@ function copySeed() {
   z-index: 100;
 }
 .result-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 40px 60px;
+  padding: var(--space-12) 60px;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
 .result-title {
-  font-size: 28px;
-  margin-bottom: 12px;
-  color: #cc3333;
+  font-size: var(--font-2xl);
+  margin-bottom: var(--space-3);
+}
+.result-title--win {
+  color: var(--color-gold);
+  animation: winPop var(--dur-slower) var(--ease-spring) both;
+}
+.result-title--draw {
+  color: var(--color-text-muted);
+}
+.result-title--lose {
+  color: var(--color-danger);
 }
 .result-detail {
-  font-size: 16px;
-  color: #666;
-  margin-bottom: 24px;
+  font-size: var(--font-lg);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-6);
 }
 .fan-info {
-  background: #f6f8fb;
-  border: 1px solid #e0e6ee;
-  border-radius: 8px;
-  padding: 12px 20px;
-  margin-bottom: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-6);
+  margin-bottom: var(--space-6);
 }
 .fan-list {
-  font-size: 15px;
-  color: #334;
-  margin-bottom: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: var(--space-2);
+}
+.fan-chip {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(51, 136, 204, 0.12);
+  border: 1px solid rgba(51, 136, 204, 0.28);
+  font-size: var(--font-sm);
+  color: var(--color-text-inverse);
+  opacity: 0;
+  animation: fanChipIn var(--dur-slow) var(--ease-out) forwards;
+  animation-delay: calc(var(--i) * 80ms);
+}
+.fan-chip em {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--color-accent);
 }
 .fan-total {
-  font-size: 18px;
-  font-weight: bold;
-  color: #cc3333;
+  font-size: var(--font-lg);
+  font-weight: 700;
+  color: var(--color-danger);
 }
 .seed-info {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  color: #888;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  font-size: var(--font-md);
+  color: var(--color-text-muted);
 }
-.btn-copy {
-  padding: 3px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
-  color: #666;
-  cursor: pointer;
-  font-size: 12px;
-}
-.btn-copy:hover { background: #f0f0f0; }
 .result-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
 }
-.btn {
-  padding: 10px 32px;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-}
-.btn-primary {
-  background: #3388cc;
-  color: #fff;
-}
-.btn-primary:hover { background: #2277bb; }
-.btn-secondary {
-  background: #666;
-  color: #fff;
-}
-.btn-secondary:hover { background: #555; }
 </style>

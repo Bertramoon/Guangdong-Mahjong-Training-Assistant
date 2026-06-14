@@ -1,20 +1,31 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@import './styles/tokens.css';
+@import './styles/base.css';
+@import './styles/animations.css';
 
 body {
-  font-family: 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
-  background: linear-gradient(135deg, #0d2b0d 0%, #1a4a1a 50%, #0d2b0d 100%);
+  font-family: var(--font-family-ui);
+  background: radial-gradient(ellipse at top, var(--color-felt-mid), var(--color-felt-deep));
+  background-attachment: fixed;
   min-height: 100vh;
-  color: #333;
+  color: var(--color-text-inverse);
+}
+
+/* 四角暗角，营造纵深 */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.5));
+  z-index: 0;
 }
 
 #app {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 20px;
+  padding: var(--space-6);
 }
