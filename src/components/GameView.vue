@@ -11,8 +11,8 @@
           placeholder="输入种子号重播牌局"
           @keyup.enter="handleStart"
         />
-        <button class="btn btn--primary btn--lg" :disabled="cacheStatus === 'loading'" @click="handleStart">
-          {{ cacheStatus === 'loading' ? '准备中…' : '开始新游戏' }}
+        <button class="btn btn--primary btn--lg" :disabled="!initialized" @click="handleStart">
+          {{ initialized ? '开始新游戏' : '准备中…' }}
         </button>
       </div>
     </div>
@@ -122,6 +122,7 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useGame } from '../composables/useGame';
 import { useShantenCache } from '../composables/useShantenCache';
+import { initComputeWorker } from '../engine/compute-client';
 import { canPeng, canMingGang } from '../engine/meld';
 import AIAnalysisPanel from './AIAnalysisPanel.vue';
 import SettingsModal from './SettingsModal.vue';
@@ -162,14 +163,16 @@ const {
   reactionAdvice,
 } = useGame(appSettings);
 
-const { loadCache, cacheStatus } = useShantenCache();
+const { loadCache } = useShantenCache();
 
-// 缓存加载 Promise：开局前 await，确保向听缓存就绪，
-// 否则 calculateShanten 会回退到主线程递归搜索（被 getDiscardRecommendation 放大 455 倍）造成卡顿。
-let cacheLoadPromise: Promise<void> = Promise.resolve();
+// 游戏就绪门控：向听缓存加载 + 计算常驻 worker 就绪。
+// 开局前 await，确保重计算路径不回退到主线程递归搜索，且出牌建议/反应分析走 worker（非阻塞）。
+let gameReadyPromise: Promise<void> = Promise.resolve();
+const initialized = ref(false);
 
 onMounted(() => {
-  cacheLoadPromise = loadCache();
+  gameReadyPromise = loadCache().then(() => initComputeWorker());
+  gameReadyPromise.then(() => { initialized.value = true; });
   window.addEventListener('keydown', onKeyDown);
 });
 
@@ -193,7 +196,7 @@ async function handleStart() {
     return;
   }
   seedInput.value = '';
-  await cacheLoadPromise;
+  await gameReadyPromise;
   startGameAndAutoPlay(seed);
 }
 
@@ -218,13 +221,13 @@ function onSaveSettings(config: AIProviderConfig, settings: AppSettings) {
 async function handleNewGame() {
   revealMode.value = false;
   seedInput.value = '';
-  await cacheLoadPromise;
+  await gameReadyPromise;
   startGameAndAutoPlay();
 }
 
 async function handleReplay(seed: number) {
   revealMode.value = false;
-  await cacheLoadPromise;
+  await gameReadyPromise;
   startGameAndAutoPlay(seed);
 }
 

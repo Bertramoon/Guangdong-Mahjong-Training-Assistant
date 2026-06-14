@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import type { Ref } from 'vue';
 import type { GameState, Tile, TileType } from '../engine/types';
 import type { AppSettings } from '../storage/store';
@@ -11,7 +11,8 @@ import { isSelfHu } from '../engine/hu';
 import { getTileName } from '../engine/tile';
 import { canJiaGang, getJiaGangCandidates, canAnGang, getAnGangCandidates, canPeng, canMingGang } from '../engine/meld';
 import { robotDiscard, robotShouldPeng, robotShouldMingGang, robotShouldJiaGang } from '../robot/robot';
-import { getDiscardRecommendation, getReactionAnalysis, type DiscardRecommendation, type ReactionAnalysis } from '../engine/advisor';
+import type { DiscardRecommendation, ReactionAnalysis } from '../engine/advisor';
+import { discardRecommendation, reactionAnalysis } from '../engine/compute-client';
 import { calculateFan, type FanResult } from '../engine/scoring';
 
 export function useGame(settings: Ref<AppSettings>) {
@@ -28,38 +29,62 @@ export function useGame(settings: Ref<AppSettings>) {
   const highlightedTileIds = ref<number[]>([]);
   const lastHuResult = ref<FanResult | null>(null);
 
-  const discardAdvice = computed<DiscardRecommendation | null>(() => {
-    const game = gameState.value;
-    if (!game || game.currentPlayer !== 0 || game.phase !== 'discard') return null;
-    const hand = game.hands[0];
-    if (hand.length < 2) return null;
-    try {
-      return getDiscardRecommendation(
-        hand,
-        game.ghostType,
-        game.ghostValue,
-        game.melds[0].length,
-      );
-    } catch {
-      return null;
-    }
-  });
+  // 出牌建议：在 Web Worker 中计算（非阻塞）。用 token 丢弃过期的异步结果。
+  const discardAdvice = ref<DiscardRecommendation | null>(null);
+  let discardAdviceToken = 0;
+  watch(
+    () => {
+      const game = gameState.value;
+      if (!game || game.currentPlayer !== 0 || game.phase !== 'discard') return null;
+      const hand = game.hands[0];
+      if (hand.length < 2) return null;
+      return { hand: [...hand], ghostType: game.ghostType, ghostValue: game.ghostValue, meldCount: game.melds[0].length };
+    },
+    async (params) => {
+      if (!params) { discardAdvice.value = null; return; }
+      console.log('[diag] discardAdvice watcher 触发，请求出牌建议');
+      const token = ++discardAdviceToken;
+      try {
+        const result = await discardRecommendation(params.hand, params.ghostType, params.ghostValue, params.meldCount);
+        if (token === discardAdviceToken) discardAdvice.value = result;
+      } catch {
+        if (token === discardAdviceToken) discardAdvice.value = null;
+      }
+    },
+    { immediate: true },
+  );
 
-  const reactionAdvice = computed<ReactionAnalysis | null>(() => {
-    const game = gameState.value;
-    // 仅当别人出牌、轮到玩家反应时才计算（玩家自己刚出牌后 lastDiscardPlayer===0，无需计算）
-    if (!game || game.phase !== 'reaction' || game.currentPlayer !== 0 || game.lastDiscardPlayer === 0 || !game.lastDiscard) return null;
-    const hand = game.hands[0];
-    const tile = game.lastDiscard;
-    try {
-      return getReactionAnalysis(
-        hand, tile, game.ghostType, game.ghostValue, game.melds[0].length,
-        { peng: canPeng(hand, tile), mingGang: canMingGang(hand, tile) },
-      );
-    } catch {
-      return null;
-    }
-  });
+  // 反应分析：在 Web Worker 中计算（非阻塞）。用 token 丢弃过期的异步结果。
+  const reactionAdvice = ref<ReactionAnalysis | null>(null);
+  let reactionAdviceToken = 0;
+  watch(
+    () => {
+      const game = gameState.value;
+      // 仅当别人出牌、轮到玩家反应时才计算（玩家自己刚出牌后 lastDiscardPlayer===0，无需计算）
+      if (!game || game.phase !== 'reaction' || game.currentPlayer !== 0 || game.lastDiscardPlayer === 0 || !game.lastDiscard) return null;
+      const hand = game.hands[0];
+      const tile = game.lastDiscard;
+      return {
+        hand: [...hand], tile,
+        ghostType: game.ghostType, ghostValue: game.ghostValue, meldCount: game.melds[0].length,
+        peng: canPeng(hand, tile), mingGang: canMingGang(hand, tile),
+      };
+    },
+    async (params) => {
+      if (!params) { reactionAdvice.value = null; return; }
+      const token = ++reactionAdviceToken;
+      try {
+        const result = await reactionAnalysis(
+          params.hand, params.tile, params.ghostType, params.ghostValue, params.meldCount,
+          { peng: params.peng, mingGang: params.mingGang },
+        );
+        if (token === reactionAdviceToken) reactionAdvice.value = result;
+      } catch {
+        if (token === reactionAdviceToken) reactionAdvice.value = null;
+      }
+    },
+    { immediate: true },
+  );
 
   const currentPlayerName = computed(() => {
     if (!gameState.value) return '';
@@ -266,6 +291,20 @@ export function useGame(settings: Ref<AppSettings>) {
     return new Promise(r => setTimeout(r, ms));
   }
 
+  /** 机器人出牌：智能模式走 worker（非阻塞），否则走主线程轻量启发式。
+   *  注意：smart 分支沿用既有 meldCount=0 约定（保持原行为，未修正副露计数）。 */
+  async function chooseRobotDiscard(hand: Tile[], ghostType: TileType, ghostValue: number): Promise<Tile> {
+    if (settings.value.robotSmartDiscard) {
+      try {
+        const rec = await discardRecommendation(hand, ghostType, ghostValue, 0);
+        if (rec.evaluations.length > 0) return rec.evaluations[0].discardTile;
+      } catch {
+        // worker 不可用时降级到启发式
+      }
+    }
+    return robotDiscard(hand, ghostType, ghostValue, Math.random, false);
+  }
+
   async function handleRobotReactions(game: GameState): Promise<void> {
     if (!game.lastDiscard) return;
     const discardPlayer = game.lastDiscardPlayer;
@@ -285,7 +324,7 @@ export function useGame(settings: Ref<AppSettings>) {
           const afterDraw = drawPhase(afterGang, 'gang_replacement');
           gameState.value = afterDraw;
           if (afterDraw.phase === 'discard') {
-            const tile = robotDiscard(afterDraw.hands[i], afterDraw.ghostType, afterDraw.ghostValue, Math.random, settings.value.robotSmartDiscard);
+            const tile = await chooseRobotDiscard(afterDraw.hands[i], afterDraw.ghostType, afterDraw.ghostValue);
             const afterDiscard = discardPhase(afterDraw, tile);
             addLog(`机器人${i}打出: ${getTileName(tile)}`);
             gameState.value = afterDiscard;
@@ -301,7 +340,7 @@ export function useGame(settings: Ref<AppSettings>) {
         gameState.value = afterPeng;
         // Peng: must discard
         if (afterPeng.phase === 'discard') {
-          const tile = robotDiscard(afterPeng.hands[i], afterPeng.ghostType, afterPeng.ghostValue, Math.random, settings.value.robotSmartDiscard);
+          const tile = await chooseRobotDiscard(afterPeng.hands[i], afterPeng.ghostType, afterPeng.ghostValue);
           const afterDiscard = discardPhase(afterPeng, tile);
           addLog(`机器人${i}打出: ${getTileName(tile)}`);
           gameState.value = afterDiscard;
@@ -358,7 +397,7 @@ export function useGame(settings: Ref<AppSettings>) {
           await delay(500);
           // Must discard after jiaGang
           if (afterJiaGang.phase === 'discard') {
-            const tile = robotDiscard(afterJiaGang.hands[player], afterJiaGang.ghostType, afterJiaGang.ghostValue, Math.random, settings.value.robotSmartDiscard);
+            const tile = await chooseRobotDiscard(afterJiaGang.hands[player], afterJiaGang.ghostType, afterJiaGang.ghostValue);
             const afterDiscard = discardPhase(afterJiaGang, tile);
             addLog(`机器人${player}打出: ${getTileName(tile)}`);
             gameState.value = afterDiscard;
@@ -368,7 +407,7 @@ export function useGame(settings: Ref<AppSettings>) {
       }
 
       // Normal discard
-      const tile = robotDiscard(afterDraw.hands[player], afterDraw.ghostType, afterDraw.ghostValue, Math.random, settings.value.robotSmartDiscard);
+      const tile = await chooseRobotDiscard(afterDraw.hands[player], afterDraw.ghostType, afterDraw.ghostValue);
       const afterDiscard = discardPhase(afterDraw, tile);
       addLog(`机器人${player}打出: ${getTileName(tile)}`);
 
@@ -394,7 +433,7 @@ export function useGame(settings: Ref<AppSettings>) {
             const rd = drawPhase(g, 'gang_replacement');
             gameState.value = rd;
             if (rd.phase === 'discard') {
-              const rdTile = robotDiscard(rd.hands[i], rd.ghostType, rd.ghostValue, Math.random, settings.value.robotSmartDiscard);
+              const rdTile = await chooseRobotDiscard(rd.hands[i], rd.ghostType, rd.ghostValue);
               g = discardPhase(rd, rdTile);
               addLog(`机器人${i}打出: ${getTileName(rdTile)}`);
               gameState.value = g;
@@ -415,7 +454,7 @@ export function useGame(settings: Ref<AppSettings>) {
           addLog(`机器人${i}碰了: ${getTileName(tile)}`);
           gameState.value = g;
           if (g.phase === 'discard') {
-            const rdTile = robotDiscard(g.hands[i], g.ghostType, g.ghostValue, Math.random, settings.value.robotSmartDiscard);
+            const rdTile = await chooseRobotDiscard(g.hands[i], g.ghostType, g.ghostValue);
             g = discardPhase(g, rdTile);
             addLog(`机器人${i}打出: ${getTileName(rdTile)}`);
             gameState.value = g;
