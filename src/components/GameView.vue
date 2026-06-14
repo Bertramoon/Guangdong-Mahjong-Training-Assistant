@@ -11,7 +11,9 @@
           placeholder="输入种子号重播牌局"
           @keyup.enter="handleStart"
         />
-        <button class="btn btn--primary btn--lg" @click="handleStart">开始新游戏</button>
+        <button class="btn btn--primary btn--lg" :disabled="cacheStatus === 'loading'" @click="handleStart">
+          {{ cacheStatus === 'loading' ? '准备中…' : '开始新游戏' }}
+        </button>
       </div>
     </div>
 
@@ -160,10 +162,14 @@ const {
   reactionAdvice,
 } = useGame(appSettings);
 
-const { loadCache } = useShantenCache();
+const { loadCache, cacheStatus } = useShantenCache();
+
+// 缓存加载 Promise：开局前 await，确保向听缓存就绪，
+// 否则 calculateShanten 会回退到主线程递归搜索（被 getDiscardRecommendation 放大 455 倍）造成卡顿。
+let cacheLoadPromise: Promise<void> = Promise.resolve();
 
 onMounted(() => {
-  loadCache();
+  cacheLoadPromise = loadCache();
   window.addEventListener('keydown', onKeyDown);
 });
 
@@ -180,13 +186,14 @@ const aiConfig = ref<AIProviderConfig>(loadAIConfig());
 
 const seedInput = ref('');
 
-function handleStart() {
+async function handleStart() {
   const trimmed = seedInput.value.trim();
   const seed = trimmed ? parseInt(trimmed, 10) : undefined;
   if (trimmed && (isNaN(seed!) || seed! <= 0)) {
     return;
   }
   seedInput.value = '';
+  await cacheLoadPromise;
   startGameAndAutoPlay(seed);
 }
 
@@ -208,14 +215,16 @@ function onSaveSettings(config: AIProviderConfig, settings: AppSettings) {
   saveSettings(settings);
 }
 
-function handleNewGame() {
+async function handleNewGame() {
   revealMode.value = false;
   seedInput.value = '';
+  await cacheLoadPromise;
   startGameAndAutoPlay();
 }
 
-function handleReplay(seed: number) {
+async function handleReplay(seed: number) {
   revealMode.value = false;
+  await cacheLoadPromise;
   startGameAndAutoPlay(seed);
 }
 
