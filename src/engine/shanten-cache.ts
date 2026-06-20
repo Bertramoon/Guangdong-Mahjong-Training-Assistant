@@ -4,7 +4,7 @@ import {
   loadSuitCache,
 } from './shanten';
 
-export const CURRENT_CACHE_VERSION = 1;
+export const CURRENT_CACHE_VERSION = 2;
 const DB_NAME = 'mahjong_shanten_cache';
 const STORE_NAME = 'suit_cache';
 
@@ -53,35 +53,44 @@ async function openDB(): Promise<IDBDatabase> {
   });
 }
 
-export async function loadFromIndexedDB(): Promise<{
+interface StoredCache {
+  version: number;
   entries: [string, SuitResult][];
-  version: number | null;
-} | null> {
+}
+
+/**
+ * 读取整份缓存（单条 blob，key='__cache__'）。一次性结构化克隆，避免逐条 getAll 的开销。
+ * 版本不匹配或不存在时返回 null，由 ensureCache 触发重建。
+ */
+export async function loadFromIndexedDB(): Promise<StoredCache | null> {
   try {
     const db = await openDB();
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
-    const getAll = store.getAll();
-    const getAllKeys = store.getAllKeys();
-    return new Promise((resolve, reject) => {
-      tx.oncomplete = () => {
-        const entries: [string, SuitResult][] = [];
-        let version: number | null = null;
-        for (let i = 0; i < getAllKeys.result.length; i++) {
-          const key = getAllKeys.result[i] as string;
-          if (key === '__version__') {
-            version = getAll.result[i] as number;
-          } else {
-            entries.push([key, getAll.result[i] as SuitResult]);
-          }
-        }
-        db.close();
-        resolve({ entries, version });
-      };
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const req = tx.objectStore(STORE_NAME).get('__cache__');
+      tx.oncomplete = () => { db.close(); resolve((req.result as StoredCache) ?? null); };
       tx.onerror = () => { db.close(); reject(tx.error); };
     });
   } catch {
     return null;
+  }
+}
+
+/**
+ * 廉价探测：持久化缓存是否存在且版本匹配（仅读极小的 '__version__' key，毫秒级）。
+ * 供 UI 在页面挂载时立即判断是否可亮起按钮，无需等待整份 blob 载入。
+ */
+export async function hasCachedVersion(): Promise<boolean> {
+  try {
+    const db = await openDB();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const req = tx.objectStore(STORE_NAME).get('__version__');
+      tx.oncomplete = () => { db.close(); resolve(req.result === CURRENT_CACHE_VERSION); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    });
+  } catch {
+    return false;
   }
 }
 

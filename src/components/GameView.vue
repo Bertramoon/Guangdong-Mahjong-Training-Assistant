@@ -11,8 +11,8 @@
           placeholder="输入种子号重播牌局"
           @keyup.enter="handleStart"
         />
-        <button class="btn btn--primary btn--lg" :disabled="!initialized" @click="handleStart">
-          {{ initialized ? '开始新游戏' : '准备中…' }}
+        <button class="btn btn--primary btn--lg" :disabled="!initialized || starting" @click="handleStart">
+          {{ starting ? '开局中…' : initialized ? '开始新游戏' : '准备中…' }}
         </button>
       </div>
     </div>
@@ -123,6 +123,7 @@ import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useGame } from '../composables/useGame';
 import { useShantenCache } from '../composables/useShantenCache';
 import { initComputeWorker } from '../engine/compute-client';
+import { hasCachedVersion } from '../engine/shanten-cache';
 import { canPeng, canMingGang } from '../engine/meld';
 import AIAnalysisPanel from './AIAnalysisPanel.vue';
 import SettingsModal from './SettingsModal.vue';
@@ -165,14 +166,19 @@ const {
 
 const { loadCache } = useShantenCache();
 
-// 游戏就绪门控：向听缓存加载 + 计算常驻 worker 就绪。
-// 开局前 await，确保重计算路径不回退到主线程递归搜索，且出牌建议/反应分析走 worker（非阻塞）。
+// 游戏就绪门控：持久化缓存存在时按钮立即亮起（hasCachedVersion 毫秒级探测），整份缓存在后台载入。
+// 主线程兜底为 O(1) 缓存命中；真正开局前 handleStart 会 await gameReadyPromise 确保 Map 已填满。
+// 计算常驻 worker 后台初始化，ready 前的请求自动回退主线程 O(1) 命中。
 let gameReadyPromise: Promise<void> = Promise.resolve();
 const initialized = ref(false);
+const starting = ref(false);
 
 onMounted(() => {
-  gameReadyPromise = loadCache().then(() => initComputeWorker());
+  gameReadyPromise = loadCache();
+  // 持久化缓存已存在 → 立即亮起按钮；无缓存 → 仍由 gameReadyPromise 完成后置 true（显示"准备中…"直至预计算结束）。
+  hasCachedVersion().then(exists => { if (exists) initialized.value = true; });
   gameReadyPromise.then(() => { initialized.value = true; });
+  gameReadyPromise.then(() => initComputeWorker());
   window.addEventListener('keydown', onKeyDown);
 });
 
@@ -190,14 +196,20 @@ const aiConfig = ref<AIProviderConfig>(loadAIConfig());
 const seedInput = ref('');
 
 async function handleStart() {
+  if (!initialized.value || starting.value) return;
   const trimmed = seedInput.value.trim();
   const seed = trimmed ? parseInt(trimmed, 10) : undefined;
   if (trimmed && (isNaN(seed!) || seed! <= 0)) {
     return;
   }
   seedInput.value = '';
-  await gameReadyPromise;
-  startGameAndAutoPlay(seed);
+  starting.value = true;
+  try {
+    await gameReadyPromise;
+    startGameAndAutoPlay(seed);
+  } finally {
+    starting.value = false;
+  }
 }
 
 async function analyzeCurrentGame() {

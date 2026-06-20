@@ -8,7 +8,7 @@ interface SuitResult {
 
 const DB_NAME = 'mahjong_shanten_cache';
 const STORE_NAME = 'suit_cache';
-const CURRENT_CACHE_VERSION = 1;
+const CURRENT_CACHE_VERSION = 2;
 
 function encodeSuitKey(counts: number[], isNumber: boolean): string {
   return `${isNumber ? 'N' : 'H'}:${counts.join(',')}`;
@@ -106,10 +106,9 @@ async function writeEntriesToDB(entries: [string, SuitResult][]): Promise<void> 
   const tx = db.transaction(STORE_NAME, 'readwrite');
   const store = tx.objectStore(STORE_NAME);
   store.clear();
+  // 单条 blob（整份 entries 一次结构化克隆），替代逐条 put；另存极小的版本号供 UI 廉价探测。
   store.put(CURRENT_CACHE_VERSION, '__version__');
-  for (const [key, value] of entries) {
-    store.put(value, key);
-  }
+  store.put({ version: CURRENT_CACHE_VERSION, entries }, '__cache__');
   return new Promise((resolve, reject) => {
     tx.oncomplete = () => { db.close(); resolve(); };
     tx.onerror = () => { db.close(); reject(tx.error); };
