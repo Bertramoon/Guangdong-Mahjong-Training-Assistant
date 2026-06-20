@@ -1,4 +1,6 @@
 import type { AIProviderConfig } from '../ai/provider';
+import type { RobotDifficulty } from '../robot/difficulty';
+import { resolveRobotDifficulty } from '../robot/difficulty';
 
 const KEYS = {
   AI_CONFIG: 'mahjong_ai_config',
@@ -8,14 +10,14 @@ const KEYS = {
 
 export interface AppSettings {
   autoAnalysis: boolean;
-  robotSmartDiscard: boolean;
+  robotDifficulty: RobotDifficulty;
   robotCanHu: boolean;
   robotOpenHand: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
   autoAnalysis: false,
-  robotSmartDiscard: false,
+  robotDifficulty: 'off',
   robotCanHu: false,
   robotOpenHand: false,
 };
@@ -60,7 +62,15 @@ export function loadSettings(): AppSettings {
   const raw = localStorage.getItem(KEYS.SETTINGS);
   if (!raw) return { ...DEFAULT_SETTINGS };
   try {
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    const settings: AppSettings = {
+      ...DEFAULT_SETTINGS,
+      ...parsed,
+      robotDifficulty: resolveRobotDifficulty(parsed),
+    };
+    // 迁移：移除已废弃的旧字段 robotSmartDiscard
+    delete (settings as { robotSmartDiscard?: unknown }).robotSmartDiscard;
+    return settings;
   } catch {
     return { ...DEFAULT_SETTINGS };
   }

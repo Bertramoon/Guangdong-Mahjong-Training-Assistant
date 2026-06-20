@@ -11,6 +11,7 @@ import { isSelfHu } from '../engine/hu';
 import { getTileName } from '../engine/tile';
 import { canJiaGang, getJiaGangCandidates, canAnGang, getAnGangCandidates, canPeng, canMingGang } from '../engine/meld';
 import { robotDiscard, robotShouldPeng, robotShouldMingGang, robotShouldJiaGang } from '../robot/robot';
+import { shouldPlaySmart } from '../robot/difficulty';
 import type { DiscardRecommendation, ReactionAnalysis } from '../engine/advisor';
 import { discardRecommendation, reactionAnalysis } from '../engine/compute-client';
 import { calculateFan, type FanResult } from '../engine/scoring';
@@ -291,10 +292,15 @@ export function useGame(settings: Ref<AppSettings>) {
     return new Promise(r => setTimeout(r, ms));
   }
 
-  /** 机器人出牌：智能模式走 worker（非阻塞），否则走主线程轻量启发式。
+  /** 机器人出牌：按 robotDifficulty 概率掷骰，决定本回合走智能(worker)还是启发式。
    *  注意：smart 分支沿用既有 meldCount=0 约定（保持原行为，未修正副露计数）。 */
-  async function chooseRobotDiscard(hand: Tile[], ghostType: TileType, ghostValue: number): Promise<Tile> {
-    if (settings.value.robotSmartDiscard) {
+  async function chooseRobotDiscard(
+    hand: Tile[],
+    ghostType: TileType,
+    ghostValue: number,
+    rollRng: () => number = Math.random,
+  ): Promise<Tile> {
+    if (shouldPlaySmart(settings.value.robotDifficulty, rollRng)) {
       try {
         const rec = await discardRecommendation(hand, ghostType, ghostValue, 0);
         if (rec.evaluations.length > 0) return rec.evaluations[0].discardTile;

@@ -24,9 +24,15 @@
         <span>自动 AI 分析（每次轮到你时自动触发）</span>
       </label>
 
-      <label class="checkbox-field">
-        <input v-model="localSettings.robotSmartDiscard" type="checkbox" />
-        <span>机器人智能弃牌（基于向听数推荐算法）</span>
+      <label class="field">
+        <span>机器人出牌难度</span>
+        <select v-model="localSettings.robotDifficulty">
+          <option value="off">关闭（纯启发式）</option>
+          <option value="low">低</option>
+          <option value="medium">中</option>
+          <option value="high">高</option>
+          <option value="master">最高</option>
+        </select>
       </label>
 
       <label class="checkbox-field">
@@ -151,6 +157,23 @@ function onSave() {
 }
 
 .field input:focus {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-focus);
+}
+
+.field select {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-inverse);
+  font-size: var(--font-md);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.field select:focus {
   border-color: var(--color-accent);
   box-shadow: var(--shadow-focus);
 }
