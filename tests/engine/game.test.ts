@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createGame, drawPhase, discardPhase, pengPhase, jiaGangPhase } from '../../src/engine/game';
+import { createGame, drawPhase, discardPhase, pengPhase, jiaGangPhase, mingGangPhase, RESERVED_HORSE_TILE_COUNT } from '../../src/engine/game';
 import { createRNG } from '../../src/engine/rng';
 
 describe('createGame', () => {
@@ -69,12 +69,21 @@ describe('drawPhase', () => {
     expect(() => drawPhase(game)).toThrow();
   });
 
-  it('牌墙空时进入流局', () => {
+  it('牌墙只剩预留 6 张时进入流局', () => {
     const game = createGame(0);
-    game.wall = [];
+    game.wall = game.wall.slice(0, RESERVED_HORSE_TILE_COUNT);
     const next = drawPhase(game);
     expect(next.phase).toBe('draw_end');
     expect(next.winner).toBe(-1);
+    expect(next.wall.length).toBe(RESERVED_HORSE_TILE_COUNT);
+  });
+
+  it('普通摸牌不会摸走预留 6 张', () => {
+    const game = createGame(0);
+    game.wall = game.wall.slice(0, RESERVED_HORSE_TILE_COUNT + 1);
+    const next = drawPhase(game);
+    expect(next.phase).toBe('discard');
+    expect(next.wall.length).toBe(RESERVED_HORSE_TILE_COUNT);
   });
 });
 
@@ -171,6 +180,24 @@ describe('pengPhase', () => {
   });
 });
 
+describe('mingGangPhase', () => {
+  it('明杠记录放杠来源玩家', () => {
+    const game = createGame(0);
+    game.phase = 'reaction';
+    game.lastDiscard = { type: 'wan', value: 1, id: 100 };
+    game.lastDiscardPlayer = 0;
+    game.hands[1] = [
+      { type: 'wan', value: 1, id: 1 },
+      { type: 'wan', value: 1, id: 2 },
+      { type: 'wan', value: 1, id: 3 },
+      { type: 'wan', value: 2, id: 4 },
+    ];
+    const next = mingGangPhase(game, 1);
+    expect(next.melds[1][0].type).toBe('ming_gang');
+    expect(next.melds[1][0].source).toBe(0);
+  });
+});
+
 describe('jiaGangPhase', () => {
   it('加杠后手牌-1，副露更新，补牌并进入出牌阶段', () => {
     const game = createGame(0);
@@ -196,6 +223,28 @@ describe('jiaGangPhase', () => {
     expect(next.melds[0][0].type).toBe('jia_gang');
     expect(next.melds[0][0].tiles.length).toBe(4);
     expect(next.phase).toBe('discard');
+  });
+
+  it('加杠补牌不会摸走预留 6 张', () => {
+    const game = createGame(0);
+    game.wall = game.wall.slice(0, RESERVED_HORSE_TILE_COUNT + 1);
+    game.melds[0] = [{
+      type: 'peng',
+      tiles: [
+        { type: 'wan', value: 1, id: 100 },
+        { type: 'wan', value: 1, id: 101 },
+        { type: 'wan', value: 1, id: 102 },
+      ],
+    }];
+    game.hands[0] = [
+      { type: 'wan', value: 1, id: 103 },
+      { type: 'tiao', value: 2, id: 200 },
+    ];
+    game.phase = 'discard';
+    game.currentPlayer = 0;
+
+    const next = jiaGangPhase(game, 'wan', 1);
+    expect(next.wall.length).toBe(RESERVED_HORSE_TILE_COUNT);
   });
 
   it('无对应 peng 时报错', () => {

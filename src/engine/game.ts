@@ -1,5 +1,7 @@
 import type { GameState, Tile, TileType } from './types';
 import { createAllTiles } from './tile';
+
+export const RESERVED_HORSE_TILE_COUNT = 6;
 import { createRNG } from './rng';
 import { shuffleWall, drawInitialHands, drawTile } from './wall';
 import { sortHand } from './hand';
@@ -87,7 +89,7 @@ export function drawPhase(
     throw new Error(`Cannot draw in phase: ${game.phase}`);
   }
 
-  if (game.wall.length === 0) {
+  if (game.wall.length <= RESERVED_HORSE_TILE_COUNT) {
     return { ...game, phase: 'draw_end', winner: -1 };
   }
 
@@ -149,8 +151,9 @@ export function pengPhase(game: GameState, playerIndex: number): GameState {
 export function mingGangPhase(game: GameState, playerIndex: number): GameState {
   if (!game.lastDiscard) throw new Error('No discard to gang');
   const { hand, meld } = createMingGang(game.hands[playerIndex], game.lastDiscard);
+  const gangMeld = { ...meld, source: game.lastDiscardPlayer };
   const newHands = game.hands.map((h, i) => (i === playerIndex ? hand : [...h]));
-  const newMelds = game.melds.map((m, i) => (i === playerIndex ? [...m, meld] : [...m]));
+  const newMelds = game.melds.map((m, i) => (i === playerIndex ? [...m, gangMeld] : [...m]));
   const newDiscards = game.discards.map((d, i) =>
     i === game.lastDiscardPlayer ? d.slice(0, -1) : [...d],
   );

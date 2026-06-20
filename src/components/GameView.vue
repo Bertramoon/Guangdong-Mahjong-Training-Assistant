@@ -93,6 +93,7 @@
         :turn-count="gameState.turnCount"
         :seed="gameState.seed"
         :hu-result="lastHuResult"
+        :settlement="settlement"
         @new-game="handleNewGame"
         @view-details="revealMode = true"
         @replay="handleReplay"
@@ -149,6 +150,7 @@ const {
   highlightedTileIds,
   matchedTileIds,
   lastHuResult,
+  settlement,
   currentPlayerName,
   ghostName,
   startGameAndAutoPlay,
@@ -240,7 +242,7 @@ async function handleNewGame() {
 async function handleReplay(seed: number) {
   revealMode.value = false;
   await gameReadyPromise;
-  startGameAndAutoPlay(seed);
+  startGameAndAutoPlay(seed, false);
 }
 
 /** 按日志内容着色：胡=红、杠=紫、你=白、机器人=灰、其余=浅灰 */

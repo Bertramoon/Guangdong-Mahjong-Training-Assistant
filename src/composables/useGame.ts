@@ -6,6 +6,7 @@ import {
   createGame, drawPhase, discardPhase,
   pengPhase, mingGangPhase, jiaGangPhase, anGangPhase,
   checkReactions, passReaction, nextPlayerAfter,
+  RESERVED_HORSE_TILE_COUNT,
 } from '../engine/game';
 import { isSelfHu } from '../engine/hu';
 import { getTileName } from '../engine/tile';
@@ -15,12 +16,14 @@ import { shouldPlaySmart } from '../robot/difficulty';
 import type { DiscardRecommendation, ReactionAnalysis } from '../engine/advisor';
 import { discardRecommendation, reactionAnalysis } from '../engine/compute-client';
 import { calculateFan, type FanResult } from '../engine/scoring';
+import { computeSettlement, type Settlement } from '../engine/settlement';
 
 export function useGame(settings: Ref<AppSettings>) {
   const gameState = ref<GameState | null>(null);
   const selectedTile = ref<Tile | null>(null);
   const gameLog = ref<string[]>([]);
   const isProcessing = ref(false);
+  const dealerIndex = ref(0);
 
   const canHuNow = ref(false);
   const canJiaGangNow = ref(false);
@@ -136,6 +139,21 @@ export function useGame(settings: Ref<AppSettings>) {
     });
   });
 
+  const settlement = computed<Settlement | null>(() => {
+    const game = gameState.value;
+    if (!game || (game.phase !== 'hu' && game.phase !== 'draw_end')) return null;
+    return computeSettlement({
+      winner: game.winner,
+      melds: game.melds,
+      hands: game.hands,
+      huResult: lastHuResult.value,
+      dealerIndex: dealerIndex.value,
+      reserveTiles: game.wall.slice(-RESERVED_HORSE_TILE_COUNT),
+      ghostType: game.ghostType,
+      ghostValue: game.ghostValue,
+    });
+  });
+
   function addLog(msg: string) {
     gameLog.value.push(msg);
     if (gameLog.value.length > 100) gameLog.value.shift();
@@ -157,10 +175,14 @@ export function useGame(settings: Ref<AppSettings>) {
     canJiaGangNow.value = jiaGangOptions.value.length > 0;
   }
 
-  function startNewGame(seed?: number) {
-    let game = createGame(0, seed);
+  function startNewGame(seed?: number, advanceDealer: boolean = true) {
+    const previous = gameState.value;
+    if (advanceDealer && previous?.phase === 'hu' && previous.winner !== null && previous.winner >= 0) {
+      dealerIndex.value = previous.winner;
+    }
+    let game = createGame(dealerIndex.value, seed);
     // 庄家已有14张牌（初始发牌时已多摸一张），直接进入出牌阶段
-    if (game.currentPlayer === 0 && game.hands[0].length === 14) {
+    if (game.hands[game.currentPlayer].length === 14) {
       game = { ...game, phase: 'discard' as const };
     }
     gameState.value = game;
@@ -368,10 +390,11 @@ export function useGame(settings: Ref<AppSettings>) {
     const player = game.currentPlayer;
 
     try {
-      // Draw
-      const afterDraw = drawPhase(game);
-      addLog(`机器人${player}摸牌`);
-      gameState.value = afterDraw;
+      const afterDraw = game.phase === 'draw' ? drawPhase(game) : game;
+      if (game.phase === 'draw') {
+        addLog(`机器人${player}摸牌`);
+        gameState.value = afterDraw;
+      }
       // Robot self-draw hu check
       if (settings.value.robotCanHu) {
         const robotHand = afterDraw.hands[player];
@@ -509,8 +532,8 @@ export function useGame(settings: Ref<AppSettings>) {
     }
   }
 
-  async function startGameAndAutoPlay(seed?: number): Promise<void> {
-    startNewGame(seed);
+  async function startGameAndAutoPlay(seed?: number, advanceDealer: boolean = true): Promise<void> {
+    startNewGame(seed, advanceDealer);
     await delay(300);
     await autoPlayUntilPlayer();
   }
@@ -527,6 +550,8 @@ export function useGame(settings: Ref<AppSettings>) {
     anGangOptions,
     highlightedTileIds,
     lastHuResult,
+    settlement,
+    dealerIndex,
     matchedTileIds,
     currentPlayerName,
     playerHand,

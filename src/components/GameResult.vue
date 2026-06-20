@@ -19,6 +19,38 @@
         </div>
         <div class="fan-total">{{ fanDisplay.totalFan }} 番 / {{ fanDisplay.score }} 分</div>
       </div>
+      <div v-if="settlement" class="settlement-info">
+        <div v-if="!settlement.isDraw" class="horse-info">
+          <div>基础分 {{ settlement.baseScore }} × (中马 {{ settlement.horseCount }} + 1) = {{ settlement.finalHuScore }} 分</div>
+          <div v-if="settlement.horseResults.length" class="horse-list">
+            <span>马牌：</span>
+            <span
+              v-for="horse in settlement.horseResults"
+              :key="horse.tile.id"
+              class="horse-tile"
+              :class="{ 'horse-tile--hit': horse.isHit }"
+            >{{ tileName(horse.tile) }}</span>
+          </div>
+        </div>
+        <div v-else class="horse-info">流局，杠分作废</div>
+        <div class="balance-grid">
+          <div
+            v-for="(score, i) in settlement.balances"
+            :key="i"
+            class="balance-item"
+            :class="{ 'balance-item--win': score > 0, 'balance-item--lose': score < 0 }"
+          >
+            <span>{{ playerName(i) }}</span>
+            <strong>{{ score > 0 ? '+' : '' }}{{ score }}</strong>
+          </div>
+        </div>
+        <div v-if="settlement.lines.length" class="settlement-lines">
+          <div v-for="(line, i) in settlement.lines" :key="i" class="settlement-line">
+            <span>{{ line.label }}</span>
+            <span>{{ formatDeltas(line.deltas) }}</span>
+          </div>
+        </div>
+      </div>
       <div class="seed-info">
         <span>种子号: {{ seed }}</span>
         <button class="btn btn--secondary btn--sm" @click="copySeed">{{ copied ? '已复制' : '复制' }}</button>
@@ -36,6 +68,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import type { FanResult } from '../engine/scoring';
+import type { Settlement } from '../engine/settlement';
+import type { Tile } from '../engine/types';
+import { getTileName } from '../engine/tile';
 
 const props = defineProps<{
   show: boolean;
@@ -43,6 +78,7 @@ const props = defineProps<{
   turnCount: number;
   seed: number;
   huResult?: FanResult | null;
+  settlement?: Settlement | null;
 }>();
 
 defineEmits<{
@@ -75,6 +111,20 @@ function copySeed() {
   navigator.clipboard.writeText(String(props.seed));
   copied.value = true;
   setTimeout(() => { copied.value = false; }, 2000);
+}
+
+function playerName(index: number): string {
+  return index === 0 ? '你' : `机器人${index}`;
+}
+
+function tileName(tile: Tile): string {
+  return getTileName(tile);
+}
+
+function formatDeltas(deltas: number[]): string {
+  return deltas
+    .map((d, i) => `${playerName(i)} ${d > 0 ? '+' : ''}${d}`)
+    .join(' / ');
 }
 </script>
 
@@ -146,6 +196,81 @@ function copySeed() {
   font-size: var(--font-lg);
   font-weight: 700;
   color: var(--color-danger);
+}
+.settlement-info {
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-6);
+  margin-bottom: var(--space-6);
+}
+.horse-info {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  margin-bottom: var(--space-3);
+}
+.horse-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.horse-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-surface-border);
+  background: rgba(255,255,255,0.05);
+  color: var(--color-text-muted);
+}
+.horse-tile--hit {
+  border-color: rgba(255, 204, 102, 0.85);
+  background: rgba(255, 204, 102, 0.18);
+  color: var(--color-gold);
+  font-weight: 700;
+}
+.balance-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(72px, 1fr));
+  gap: 8px;
+  margin-bottom: var(--space-3);
+}
+.balance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.05);
+  color: var(--color-text-muted);
+}
+.balance-item strong {
+  font-size: var(--font-lg);
+  color: inherit;
+}
+.balance-item--win {
+  color: var(--color-success);
+}
+.balance-item--lose {
+  color: var(--color-danger);
+}
+.settlement-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  font-size: var(--font-xs);
+  color: var(--color-text-muted);
+}
+.settlement-line {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 .seed-info {
   display: flex;
