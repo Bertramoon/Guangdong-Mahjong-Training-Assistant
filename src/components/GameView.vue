@@ -137,6 +137,8 @@ import ActionPanel from './ActionPanel.vue';
 import GameResult from './GameResult.vue';
 import DiscardAdvisorVue from './DiscardAdvisor.vue';
 import ReactionAdvisorVue from './ReactionAdvisor.vue';
+import { Capacitor } from '@capacitor/core';
+import { resolveBackAction } from '../composables/useBackButton';
 
 const appSettings = ref<AppSettings>(loadSettings());
 
@@ -196,6 +198,42 @@ const revealMode = ref(false);
 const aiConfig = ref<AIProviderConfig>(loadAIConfig());
 
 const seedInput = ref('');
+
+// Android 返回键：关弹窗 → 退复盘 → 2 秒内双击退出（仅原生环境注册）
+onMounted(() => {
+  if (!Capacitor.isNativePlatform()) return;
+  void (async () => {
+    const { App } = await import('@capacitor/app');
+    const { Toast } = await import('@capacitor/toast');
+    let exitArmed = false;
+    let armTimer: ReturnType<typeof setTimeout> | undefined;
+    await App.addListener('backButton', () => {
+      const action = resolveBackAction({
+        settingsOpen: showSettings.value,
+        revealMode: revealMode.value,
+        exitArmed,
+      });
+      if (action === 'close-settings') {
+        showSettings.value = false;
+        return;
+      }
+      if (action === 'close-reveal') {
+        revealMode.value = false;
+        return;
+      }
+      if (action === 'exit') {
+        void App.exitApp();
+        return;
+      }
+      exitArmed = true;
+      void Toast.show({ text: '再按一次退出' });
+      clearTimeout(armTimer);
+      armTimer = setTimeout(() => {
+        exitArmed = false;
+      }, 2000);
+    });
+  })();
+});
 
 async function handleStart() {
   if (!initialized.value || starting.value) return;
