@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2732" height="2732" viewBox="0 0 2732 2732">
+  <defs>
+    <radialGradient id="felt" cx="50%" cy="40%" r="75%">
+      <stop offset="0%" stop-color="#1e6b43"/>
+      <stop offset="100%" stop-color="#0e2f1d"/>
+    </radialGradient>
+  </defs>
+  <rect width="2732" height="2732" fill="url(#felt)"/>
+  <g transform="translate(573.72, 300.52) rotate(8 792.28 1065.48)">
+    <rect width="1598.2199999999998" height="2130.96" rx="191.24" fill="#f7f3e8"/>
+    <rect width="1598.2199999999998" height="2130.96" rx="191.24"
+      fill="none" stroke="#c9c2ad" stroke-width="27.32"/>
+    <circle cx="799.1099999999999" cy="737.6400000000001" r="158.45600000000002" fill="#1a5c3a"/>
+    <circle cx="799.1099999999999" cy="737.6400000000001" r="90.156" fill="#f7f3e8"/>
+    <text x="799.1099999999999" y="1967.04"
+      font-family="Microsoft YaHei, SimSun, serif" font-size="1284.04"
+      font-weight="bold" fill="#c0392b" text-anchor="middle">萬</text>
+  </g>
+</svg>
