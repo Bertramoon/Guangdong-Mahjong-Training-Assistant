@@ -561,18 +561,32 @@ watch(
 .game-container--compact .top-bar {
   flex: 1 1 100%;
   max-width: none;
+  padding: 0 8px;
+}
+.game-container--compact .top-bar .btn {
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.game-container--compact .ghost-badge,
+.game-container--compact .seed-badge {
+  padding: 1px 8px;
+  font-size: 12px;
 }
 .compact-main {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 0 4px 8px;
+  gap: 4px;
+  padding: 0 4px 4px;
+}
+.compact-main .game-board {
+  flex: 1 1 0;
+  min-height: 0;
 }
 .game-drawer {
-  flex: 0 0 320px;
+  flex: 0 0 280px;
   min-width: 0;
   height: calc(100vh - 48px);
 }

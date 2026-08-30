@@ -91,4 +91,14 @@ function wallTilePlayer(index: number): number {
   --tile-shadow: var(--shadow-tile-mini);
   font-size: 10px;
 }
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .discard-pool { gap: 2px; }
+  .discard-title { font-size: 10px; }
+  .discard-grid { gap: 1px; }
+  .discard-grid :deep(.tile) { --tile-w: 24px; --tile-h: 32px; font-size: 8px; }
+  .wall-title { margin-top: 2px; }
+  .wall-grid { gap: 1px; }
+  .wall-grid :deep(.tile) { --tile-w: 24px; --tile-h: 32px; font-size: 8px; }
+}
 </style>

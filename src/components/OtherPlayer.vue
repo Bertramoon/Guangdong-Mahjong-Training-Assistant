@@ -70,4 +70,12 @@ const meldDirection = computed(() =>
 .other-discards { display: flex; gap: 1px; }
 .other-discards :deep(.tile) { --tile-w: 24px; --tile-h: 32px; --tile-shadow: var(--shadow-tile-mini); font-size: 8px; }
 .other-melds { opacity: 0.85; }
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .other-player { gap: 2px; }
+  .other-name { font-size: 10px; gap: 2px; }
+  .tenpai-badge { font-size: 9px; padding: 0 3px; }
+  .other-hand :deep(.tile) { --tile-w: 20px; --tile-h: 28px; font-size: 8px; }
+  .other-discards :deep(.tile) { --tile-w: 18px; --tile-h: 24px; font-size: 7px; }
+}
 </style>

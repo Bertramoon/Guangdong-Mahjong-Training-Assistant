@@ -286,4 +286,12 @@ function formatDeltas(deltas: number[]): string {
   gap: 12px;
   justify-content: center;
 }
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .result-card {
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    padding: var(--space-4) var(--space-6);
+  }
+}
 </style>

@@ -230,10 +230,48 @@ const rightPlayerTenpai = computed(() => isTenpai(3));
 @media (orientation: landscape) and (max-height: 520px) {
   .game-board {
     min-height: 0;
-    padding: var(--space-2);
+    padding: 4px;
+    gap: 4px;
+  }
+  .board-top {
+    flex-shrink: 1;
+    min-height: 0;
+    overflow: hidden;
   }
   .board-middle {
-    gap: var(--space-2);
+    gap: 4px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .board-bottom {
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .turn-info {
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+  .board-left :deep(.other-hand),
+  .board-right :deep(.other-hand) {
+    flex-wrap: wrap;
+    max-width: 168px;
+    justify-content: center;
+  }
+  .game-board :deep(.meld-area) {
+    gap: 2px;
+    padding: 0;
+  }
+  .game-board :deep(.meld-area .tile) {
+    --tile-w: 20px;
+    --tile-h: 28px;
+  }
+  .game-board :deep(.meld-group) {
+    gap: 1px;
+    padding: 1px 2px;
+  }
+  .game-board :deep(.meld-type-label) {
+    font-size: 9px;
+    margin-left: 1px;
   }
 }
 </style>

@@ -65,9 +65,11 @@ defineEmits<{
 
 @media (orientation: landscape) and (max-height: 520px) {
   .hand-tiles {
-    --tile-w: 44px;
-    --tile-h: 60px;
-    min-height: 64px;
+    --tile-w: 36px;
+    --tile-h: 50px;
+    min-height: 0;
+    gap: 2px;
+    padding: 3px;
   }
   .hand-label {
     display: none;
