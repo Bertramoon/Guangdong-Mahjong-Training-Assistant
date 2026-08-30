@@ -14,6 +14,7 @@ const tile = (size) => `
     <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="${size * 0.012}"/>
     </filter>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&amp;display=swap');</style>
   </defs>
   <g transform="rotate(-10 ${size * 0.5} ${size * 0.5})">
     <ellipse cx="${size * 0.5}" cy="${size * 0.9}" rx="${size * 0.36}" ry="${size * 0.055}"
@@ -26,7 +27,7 @@ const tile = (size) => `
       <rect x="${size * 0.055}" y="${size * 0.05}" width="${size * 0.475}" height="${size * 0.3}" rx="${size * 0.055}"
         fill="rgba(255,255,255,0.35)"/>
       <text x="${size * 0.2925}" y="${size * 0.62}"
-        font-family="Microsoft YaHei, SimSun, serif" font-size="${size * 0.6}"
+        font-family="Ma Shan Zheng, KaiTi, STKaiti, serif" font-size="${size * 0.6}"
         font-weight="bold" fill="url(#zhongGrad)" stroke="#8f1d14" stroke-width="${size * 0.01}"
         paint-order="stroke" text-anchor="middle">中</text>
     </g>

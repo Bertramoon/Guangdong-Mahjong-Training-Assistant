@@ -14,6 +14,7 @@
     <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="12.288"/>
     </filter>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&amp;display=swap');</style>
   </defs>
   <g transform="rotate(-10 512 512)">
     <ellipse cx="512" cy="921.6" rx="368.64" ry="56.32"
@@ -26,7 +27,7 @@
       <rect x="56.32" y="51.2" width="486.4" height="307.2" rx="56.32"
         fill="rgba(255,255,255,0.35)"/>
       <text x="299.52" y="634.88"
-        font-family="Microsoft YaHei, SimSun, serif" font-size="614.4"
+        font-family="Ma Shan Zheng, KaiTi, STKaiti, serif" font-size="614.4"
         font-weight="bold" fill="url(#zhongGrad)" stroke="#8f1d14" stroke-width="10.24"
         paint-order="stroke" text-anchor="middle">中</text>
     </g>
