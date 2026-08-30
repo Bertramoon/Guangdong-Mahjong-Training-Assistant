@@ -3,3 +3,11 @@ dist
 *.local
 .gitnexus
 .worktrees
+
+# Capacitor / Android
+android/.gradle
+android/app/build
+android/build
+android/local.properties
+android/app/src/main/assets/public
+android/capacitor-cordova-android-plugins
