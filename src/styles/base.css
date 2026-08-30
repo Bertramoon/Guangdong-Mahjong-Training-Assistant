@@ -151,3 +151,19 @@ html {
     background: rgba(11, 19, 13, 0.96);
   }
 }
+
+/* —— 移动端 / WebView 适配 —— */
+/* 撑满视口，禁橡皮筋滚动与双击缩放（页面本身不滚动，由内部面板滚动） */
+html,
+body,
+#app {
+  height: 100%;
+}
+body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+button,
+[role='button'] {
+  touch-action: manipulation;
+}
