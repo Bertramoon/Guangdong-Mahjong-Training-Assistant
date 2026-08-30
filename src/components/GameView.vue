@@ -99,6 +99,7 @@
       </template>
 
       <template v-else>
+        <div class="game-row">
         <div class="compact-main">
           <GameBoard
             :hands="gameState.hands"
@@ -160,6 +161,7 @@
             </div>
           </template>
         </InfoDrawer>
+        </div>
       </template>
 
       <GameResult
@@ -545,17 +547,13 @@ watch(
   line-height: 1.6;
 }
 
-/* —— 手机横屏紧凑布局 —— */
+/* —— 手机横屏紧凑布局：上（顶栏）/下（棋盘行）两段式，上下边界钉死 —— */
 .game-container--compact {
   width: 100%;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: stretch;
   gap: 0;
   padding: 0 max(env(safe-area-inset-right), 4px) 0 max(env(safe-area-inset-left), 4px);
 }
 .game-container--compact .top-bar {
-  flex: 1 1 100%;
   max-width: none;
   padding: 0 8px;
 }
@@ -568,23 +566,34 @@ watch(
   padding: 1px 8px;
   font-size: 12px;
 }
-.compact-main {
-  flex: 1 1 0;
+.game-row {
+  flex: 1 1 auto;
+  min-height: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  padding: 0 4px 8px;
+}
+.game-row .compact-main {
+  flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 0 4px 4px;
 }
-.compact-main .game-board {
-  flex: 1 1 0;
-  min-height: 0;
-}
-.game-drawer {
+.game-row .game-drawer {
   flex: 0 0 280px;
   min-width: 0;
-  height: calc(100vh - 48px);
+  height: auto;
+  align-self: stretch;
+}
+.game-row .compact-main .game-board {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 .game-drawer.info-drawer--closed {
   flex: 0 0 20px;

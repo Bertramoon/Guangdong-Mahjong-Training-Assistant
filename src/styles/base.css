@@ -191,11 +191,8 @@ button,
   flex: 1 1 auto;
   min-height: 0;
 }
-/* 行内两列限高：行高不得把顶栏顶出视口（顶栏行高 ≈22 设计 px），抽屉内部自滚 */
-.stage--scaled .compact-main,
-.stage--scaled .game-view .game-drawer {
-  max-height: calc(100% - 22px);
-}
+/* wave-12：顶栏已是列容器直接子级、.game-row 独占剩余高（flex:1 + min-height:0），
+   两列 stretch 即行高，wave-11 的 max-height: calc(100% - 22px) 限高已冗余，删除。 */
 .stage--scaled .game-view .game-drawer {
   height: auto;
 }
