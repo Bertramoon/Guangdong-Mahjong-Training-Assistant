@@ -174,9 +174,9 @@ watch(() => props.discardEntries, () => {
     overflow: hidden;
   }
   .discard-grid { gap: 1px; transform-origin: center; }
-  .discard-grid :deep(.tile) { --tile-w: 20px; --tile-h: 27px; font-size: 7px; }
+  .discard-grid :deep(.tile) { --tile-w: 20px; --tile-h: 27px; font-size: 7px; border-radius: 3px; }
   .wall-title { margin-top: 2px; }
   .wall-grid { gap: 1px; min-height: 0; overflow: hidden; }
-  .wall-grid :deep(.tile) { --tile-w: 20px; --tile-h: 27px; font-size: 7px; }
+  .wall-grid :deep(.tile) { --tile-w: 20px; --tile-h: 27px; font-size: 7px; border-radius: 3px; }
 }
 </style>

@@ -266,8 +266,9 @@ const rightPlayerTenpai = computed(() => isTenpai(3));
     padding: 0;
   }
   .game-board :deep(.meld-area .tile) {
-    --tile-w: 20px;
-    --tile-h: 28px;
+    --tile-w: 16px;
+    --tile-h: 22px;
+    border-radius: 2px;
   }
   .game-board :deep(.meld-group) {
     gap: 1px;
