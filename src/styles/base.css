@@ -178,3 +178,28 @@ button,
   transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
   transform-origin: center;
 }
+
+/* —— 舞台内容逐级拉伸：填满舞台，消灭底部空缺 —— */
+.stage--scaled .game-view {
+  height: 100%;
+}
+.stage--scaled .game-container--compact {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.stage--scaled .compact-main .game-board {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+/* 行内两列限高：行高不得把顶栏顶出视口（顶栏行高 ≈22 设计 px），抽屉内部自滚 */
+.stage--scaled .compact-main,
+.stage--scaled .game-view .game-drawer {
+  max-height: calc(100% - 22px);
+}
+.stage--scaled .game-view .game-drawer {
+  height: auto;
+}
+.stage--scaled .start-screen {
+  margin-top: auto;
+  margin-bottom: auto;
+}
