@@ -243,6 +243,10 @@ const rightPlayerTenpai = computed(() => isTenpai(3));
     min-height: 0;
     overflow: hidden;
   }
+  .board-center {
+    align-self: stretch;
+    min-height: 0;
+  }
   .board-bottom {
     gap: 2px;
     flex-shrink: 0;
