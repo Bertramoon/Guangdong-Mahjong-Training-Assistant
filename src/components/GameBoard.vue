@@ -226,4 +226,14 @@ const rightPlayerTenpai = computed(() => isTenpai(3));
     gap: var(--space-3);
   }
 }
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .game-board {
+    min-height: 0;
+    padding: var(--space-2);
+  }
+  .board-middle {
+    gap: var(--space-2);
+  }
+}
 </style>
