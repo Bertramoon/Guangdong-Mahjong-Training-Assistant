@@ -99,4 +99,11 @@ const active = ref<string>(props.tabs[0]?.id ?? '');
   cursor: pointer;
   touch-action: manipulation;
 }
+.drawer-handle::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 44px;
+  transform: translateX(-24px);
+}
 </style>

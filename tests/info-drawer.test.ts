@@ -30,6 +30,8 @@ describe('InfoDrawer', () => {
     expect(wrapper.text()).toContain('日志内容');
     // 组件用 v-show 隐藏非激活 pane（textContent 仍包含其文本），改查可见性
     expect(wrapper.findAll('.drawer-pane')[0].isVisible()).toBe(false);
+    expect(wrapper.findAll('.drawer-pane')[1].isVisible()).toBe(true);
+    expect(wrapper.findAll('.drawer-tab')[1].classes()).toContain('drawer-tab--active');
     wrapper.unmount();
   });
 
