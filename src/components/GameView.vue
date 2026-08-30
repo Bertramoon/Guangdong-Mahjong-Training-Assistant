@@ -289,9 +289,13 @@ onMounted(() => {
     await App.addListener('backButton', () => {
       const action = resolveBackAction({
         settingsOpen: showSettings.value,
+        gameResultOpen: (gameState.value?.phase === 'hu' || gameState.value?.phase === 'draw_end') && !revealMode.value,
         revealMode: revealMode.value,
         exitArmed,
       });
+      if (action === 'ignore') {
+        return;
+      }
       if (action === 'close-settings') {
         showSettings.value = false;
         return;
