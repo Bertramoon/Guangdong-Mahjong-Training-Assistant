@@ -26,7 +26,8 @@
         fill="none" stroke="#c9c2ad" stroke-width="10.24"/>
       <rect x="56.32" y="51.2" width="486.4" height="307.2" rx="56.32"
         fill="rgba(255,255,255,0.35)"/>
-      <text x="299.52" y="634.88"
+      <text x="299.52" y="409.6"
+        dominant-baseline="central"
         font-family="Ma Shan Zheng, KaiTi, STKaiti, serif" font-size="614.4"
         font-weight="bold" fill="url(#zhongGrad)" stroke="#8f1d14" stroke-width="10.24"
         paint-order="stroke" text-anchor="middle">中</text>

@@ -26,7 +26,8 @@ const tile = (size) => `
         fill="none" stroke="#c9c2ad" stroke-width="${size * 0.01}"/>
       <rect x="${size * 0.055}" y="${size * 0.05}" width="${size * 0.475}" height="${size * 0.3}" rx="${size * 0.055}"
         fill="rgba(255,255,255,0.35)"/>
-      <text x="${size * 0.2925}" y="${size * 0.62}"
+      <text x="${size * 0.2925}" y="${size * 0.40}"
+        dominant-baseline="central"
         font-family="Ma Shan Zheng, KaiTi, STKaiti, serif" font-size="${size * 0.6}"
         font-weight="bold" fill="url(#zhongGrad)" stroke="#8f1d14" stroke-width="${size * 0.01}"
         paint-order="stroke" text-anchor="middle">中</text>
