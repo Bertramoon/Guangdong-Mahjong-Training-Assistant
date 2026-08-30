@@ -84,5 +84,24 @@ const meldDirection = computed(() =>
   .other-player .other-melds :deep(.meld-group) { padding: 1px 2px; gap: 1px; }
   .other-player .other-melds :deep(.meld-area) { gap: 1px; padding: 0; }
   .other-player .other-melds :deep(.meld-type-label) { font-size: 8px; margin-left: 1px; }
+  /* 侧位（机器人1/3）改横向环绕：纵向高度骤降，不再超出 board-middle 被两端截断 */
+  .board-left .other-player,
+  .board-right .other-player {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    row-gap: 2px;
+    column-gap: 6px;
+    max-width: 100%;
+  }
+  .board-left .other-name,
+  .board-right .other-name { flex: 1 1 100%; }
+  .board-left .other-melds :deep(.meld-area),
+  .board-right .other-melds :deep(.meld-area) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 </style>

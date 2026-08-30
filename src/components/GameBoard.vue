@@ -258,8 +258,13 @@ const rightPlayerTenpai = computed(() => isTenpai(3));
   .board-left :deep(.other-hand),
   .board-right :deep(.other-hand) {
     flex-wrap: wrap;
-    max-width: 168px;
+    max-width: 100%;
     justify-content: center;
+  }
+  /* 侧列加宽占用机器人2两侧空白，列内容改横向环绕后不再纵向截断 */
+  .board-left,
+  .board-right {
+    max-width: 225px;
   }
   .game-board :deep(.meld-area) {
     gap: 2px;
