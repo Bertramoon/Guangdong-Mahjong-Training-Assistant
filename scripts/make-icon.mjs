@@ -6,15 +6,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 mkdirSync(join(root, 'resources'), { recursive: true });
 
 const tile = (size) => `
-  <g transform="translate(${size * 0.21}, ${size * 0.11}) rotate(8 ${size * 0.29} ${size * 0.39})">
+  <g transform="translate(${size * 0.21}, ${size * 0.11})">
     <rect width="${size * 0.585}" height="${size * 0.78}" rx="${size * 0.07}" fill="#f7f3e8"/>
     <rect width="${size * 0.585}" height="${size * 0.78}" rx="${size * 0.07}"
       fill="none" stroke="#c9c2ad" stroke-width="${size * 0.01}"/>
-    <circle cx="${size * 0.2925}" cy="${size * 0.27}" r="${size * 0.058}" fill="#1a5c3a"/>
-    <circle cx="${size * 0.2925}" cy="${size * 0.27}" r="${size * 0.033}" fill="#f7f3e8"/>
-    <text x="${size * 0.2925}" y="${size * 0.72}"
-      font-family="Microsoft YaHei, SimSun, serif" font-size="${size * 0.47}"
-      font-weight="bold" fill="#c0392b" text-anchor="middle">萬</text>
+    <text x="${size * 0.2925}" y="${size * 0.62}"
+      font-family="Microsoft YaHei, SimSun, serif" font-size="${size * 0.62}"
+      font-weight="bold" fill="#d43a2f" text-anchor="middle">中</text>
   </g>`;
 
 const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
