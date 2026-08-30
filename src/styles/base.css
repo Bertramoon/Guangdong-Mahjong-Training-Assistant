@@ -167,3 +167,14 @@ button,
 [role='button'] {
   touch-action: manipulation;
 }
+
+/* —— 紧凑档舞台缩放：904×407 设计分辨率整体等比缩放居中 —— */
+.stage--scaled {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 904px;
+  height: 407px;
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+  transform-origin: center;
+}
