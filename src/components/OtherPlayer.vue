@@ -77,13 +77,16 @@ const meldDirection = computed(() =>
   .tenpai-badge { font-size: 9px; padding: 0 3px; }
   .other-hand :deep(.tile) { --tile-w: 20px; --tile-h: 28px; font-size: 8px; }
   .other-discards :deep(.tile) { --tile-w: 18px; --tile-h: 24px; font-size: 7px; }
-  .other-player .other-melds :deep(.meld-area .tile) { --tile-w: 15px; --tile-h: 21px; font-size: 7px; }
-  .other-player .other-melds :deep(.meld-group) { padding: 0 2px; gap: 1px; }
+  .other-hand { order: 2; }
+  .other-discards { order: 3; }
+  .other-melds { order: 4; }
+  .other-player .other-melds :deep(.meld-area .tile) { --tile-w: 13px; --tile-h: 18px; font-size: 6px; }
+  .other-player .other-melds :deep(.meld-group) { padding: 1px 2px; gap: 1px; }
   .other-player .other-melds :deep(.meld-area) { gap: 1px; padding: 0; }
   .other-player .other-melds :deep(.meld-type-label) { font-size: 8px; margin-left: 1px; }
   .board-left .other-player .other-hand :deep(.tile),
-  .board-right .other-player .other-hand :deep(.tile) { --tile-w: 15px; --tile-h: 21px; font-size: 7px; }
+  .board-right .other-player .other-hand :deep(.tile) { --tile-w: 13px; --tile-h: 18px; font-size: 7px; }
   .board-left .other-player .other-discards :deep(.tile),
-  .board-right .other-player .other-discards :deep(.tile) { --tile-w: 16px; --tile-h: 22px; font-size: 7px; }
+  .board-right .other-player .other-discards :deep(.tile) { --tile-w: 14px; --tile-h: 19px; font-size: 6px; }
 }
 </style>
