@@ -553,6 +553,7 @@ watch(
 .game-container--compact {
   width: 100%;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: stretch;
   gap: 0;
   padding: 0 max(env(safe-area-inset-right), 4px) 0 max(env(safe-area-inset-left), 4px);
