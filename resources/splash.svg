@@ -6,12 +6,29 @@
     </radialGradient>
   </defs>
   <rect width="2732" height="2732" fill="url(#felt)"/>
-  <g transform="translate(573.72, 300.52)">
-    <rect width="1598.2199999999998" height="2130.96" rx="191.24" fill="#f7f3e8"/>
-    <rect width="1598.2199999999998" height="2130.96" rx="191.24"
-      fill="none" stroke="#c9c2ad" stroke-width="27.32"/>
-    <text x="799.1099999999999" y="1693.84"
-      font-family="Microsoft YaHei, SimSun, serif" font-size="1693.84"
-      font-weight="bold" fill="#d43a2f" text-anchor="middle">中</text>
+  <defs>
+    <linearGradient id="zhongGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8543f"/>
+      <stop offset="100%" stop-color="#b3271c"/>
+    </linearGradient>
+    <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="32.784"/>
+    </filter>
+  </defs>
+  <g transform="rotate(-10 1366 1366)">
+    <ellipse cx="1366" cy="2458.8" rx="983.52" ry="150.26"
+      fill="rgba(0,0,0,0.3)" filter="url(#softBlur)"/>
+    <g transform="translate(573.72, 300.52)">
+      <rect x="54.64" y="60.104" width="1598.2199999999998" height="2130.96" rx="191.24" fill="#d9d2bd"/>
+      <rect width="1598.2199999999998" height="2130.96" rx="191.24" fill="#f7f3e8"/>
+      <rect width="1598.2199999999998" height="2130.96" rx="191.24"
+        fill="none" stroke="#c9c2ad" stroke-width="27.32"/>
+      <rect x="150.26" y="136.6" width="1297.7" height="819.6" rx="150.26"
+        fill="rgba(255,255,255,0.35)"/>
+      <text x="799.1099999999999" y="1693.84"
+        font-family="Microsoft YaHei, SimSun, serif" font-size="1639.2"
+        font-weight="bold" fill="url(#zhongGrad)" stroke="#8f1d14" stroke-width="27.32"
+        paint-order="stroke" text-anchor="middle">中</text>
+    </g>
   </g>
 </svg>
