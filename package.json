@@ -23,7 +23,9 @@
   "devDependencies": {
     "@capacitor/cli": "^8.5.0",
     "@vitejs/plugin-vue": "^5.2.3",
+    "@vue/test-utils": "^2.5.0",
     "@vue/tsconfig": "^0.7.0",
+    "happy-dom": "^20.11.15",
     "typescript": "~5.7.2",
     "vite": "^6.2.4",
     "vitest": "^3.1.1",
