@@ -80,13 +80,13 @@ const meldDirection = computed(() =>
   .other-hand { order: 2; }
   .other-discards { order: 3; }
   .other-melds { order: 4; }
-  .other-player .other-melds :deep(.meld-area .tile) { --tile-w: 13px; --tile-h: 18px; font-size: 6px; }
+  .other-player .other-melds :deep(.meld-area .tile) { --tile-w: 13px; --tile-h: 18px; font-size: 6px; border-radius: 2px; }
   .other-player .other-melds :deep(.meld-group) { padding: 1px 2px; gap: 1px; }
   .other-player .other-melds :deep(.meld-area) { gap: 1px; padding: 0; }
   .other-player .other-melds :deep(.meld-type-label) { font-size: 8px; margin-left: 1px; }
   .board-left .other-player .other-hand :deep(.tile),
-  .board-right .other-player .other-hand :deep(.tile) { --tile-w: 13px; --tile-h: 18px; font-size: 7px; }
+  .board-right .other-player .other-hand :deep(.tile) { --tile-w: 13px; --tile-h: 18px; font-size: 7px; border-radius: 2px; }
   .board-left .other-player .other-discards :deep(.tile),
-  .board-right .other-player .other-discards :deep(.tile) { --tile-w: 14px; --tile-h: 19px; font-size: 6px; }
+  .board-right .other-player .other-discards :deep(.tile) { --tile-w: 14px; --tile-h: 19px; font-size: 6px; border-radius: 2px; }
 }
 </style>
