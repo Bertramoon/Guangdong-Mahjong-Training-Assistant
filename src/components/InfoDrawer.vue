@@ -102,8 +102,9 @@ const active = ref<string>(props.tabs[0]?.id ?? '');
 .drawer-handle::before {
   content: '';
   position: absolute;
-  inset: 0 0 0 auto;
+  top: 0;
+  bottom: 0;
+  left: 0;
   width: 44px;
-  transform: translateX(-24px);
 }
 </style>
