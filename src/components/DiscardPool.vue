@@ -96,9 +96,9 @@ function wallTilePlayer(index: number): number {
   .discard-pool { gap: 2px; }
   .discard-title { font-size: 10px; }
   .discard-grid { gap: 1px; }
-  .discard-grid :deep(.tile) { --tile-w: 24px; --tile-h: 32px; font-size: 8px; }
+  .discard-grid :deep(.tile) { --tile-w: 20px; --tile-h: 27px; font-size: 7px; }
   .wall-title { margin-top: 2px; }
   .wall-grid { gap: 1px; }
-  .wall-grid :deep(.tile) { --tile-w: 24px; --tile-h: 32px; font-size: 8px; }
+  .wall-grid :deep(.tile) { --tile-w: 20px; --tile-h: 27px; font-size: 7px; }
 }
 </style>

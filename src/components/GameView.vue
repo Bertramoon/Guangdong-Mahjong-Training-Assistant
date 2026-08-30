@@ -146,11 +146,8 @@
           </template>
           <template #advice>
             <DiscardAdvisorVue v-if="discardAdvice" :evaluations="discardAdvice.evaluations" :current-shanten="discardAdvice.currentShanten" />
-            <p v-else class="drawer-empty">轮到你出牌时，这里会显示牌效推荐</p>
-          </template>
-          <template #reaction>
-            <ReactionAdvisorVue v-if="reactionAdvice" :analysis="reactionAdvice" />
-            <p v-else class="drawer-empty">需要应对别人打牌时，这里会显示建议</p>
+            <ReactionAdvisorVue v-else-if="reactionAdvice" :analysis="reactionAdvice" />
+            <p v-else class="drawer-empty">轮到你出牌或需要应对时，这里会显示推荐</p>
           </template>
           <template #log>
             <div class="log-panel log-panel--drawer glass-panel">
@@ -274,9 +271,8 @@ const seedInput = ref('');
 const compact = useMediaQuery('(orientation: landscape) and (max-height: 520px)');
 const drawerOpen = ref(true);
 const drawerTabs = [
+  { id: 'advice', label: '建议' },
   { id: 'ai', label: 'AI 分析' },
-  { id: 'advice', label: '出牌推荐' },
-  { id: 'reaction', label: '应对推荐' },
   { id: 'log', label: '日志' },
 ] as const;
 
@@ -589,6 +585,9 @@ watch(
   flex: 0 0 280px;
   min-width: 0;
   height: calc(100vh - 48px);
+}
+.game-drawer.info-drawer--closed {
+  flex: 0 0 20px;
 }
 .drawer-empty {
   color: var(--color-text-muted);
