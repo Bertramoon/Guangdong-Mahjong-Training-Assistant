@@ -159,6 +159,13 @@ body,
 #app {
   height: 100%;
 }
+/* 舞台容器撑满视口（宽度铺满、不许按内容收缩），供 .game-view 的 height:100% 生效；
+   stage--scaled 时另有 fixed 尺寸接管 */
+.stage {
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+}
 body {
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
@@ -179,23 +186,9 @@ button,
   transform-origin: center;
 }
 
-/* —— 舞台内容逐级拉伸：填满舞台，消灭底部空缺 —— */
-.stage--scaled .game-view {
-  height: 100%;
-}
-.stage--scaled .game-container--compact {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-.stage--scaled .compact-main .game-board {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-/* wave-12：顶栏已是列容器直接子级、.game-row 独占剩余高（flex:1 + min-height:0），
-   两列 stretch 即行高，wave-11 的 max-height: calc(100% - 22px) 限高已冗余，删除。 */
-.stage--scaled .game-view .game-drawer {
-  height: auto;
-}
+/* wave-13：结构规则（game-view / game-container / game-row / compact-main /
+   game-board / game-drawer 的 flex 链）已提升为全模式通用（见 GameView.vue），
+   此处只留舞台专属定位与 start-screen 居中。 */
 .stage--scaled .start-screen {
   margin-top: auto;
   margin-bottom: auto;

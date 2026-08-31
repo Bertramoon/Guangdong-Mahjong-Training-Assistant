@@ -29,77 +29,7 @@
         </div>
       </div>
 
-      <template v-if="!compact">
-      <GameBoard
-        :hands="gameState.hands"
-        :melds="gameState.melds"
-        :discards="gameState.discards"
-        :discard-order="gameState.discardOrder"
-        :selected-tile-id="selectedTile?.id ?? null"
-        :highlighted-tile-ids="highlightedTileIds"
-        :matched-tile-ids="matchedTileIds"
-        :ghost-type="gameState.ghostType"
-        :ghost-value="gameState.ghostValue"
-        :ghost-name="ghostName"
-        :current-player="gameState.currentPlayer"
-        :phase="gameState.phase"
-        :turn-text="`轮次: ${gameState.turnCount} | 当前: ${currentPlayerName}`"
-        :reveal-mode="revealMode || appSettings.robotOpenHand"
-        :wall-tiles="revealMode ? gameState.wall : undefined"
-        @select-tile="selectTile"
-      />
-
-      <ActionPanel
-        :phase="gameState.phase"
-        :current-player="gameState.currentPlayer"
-        :last-discard-player="gameState.lastDiscardPlayer"
-        :can-hu="canHuNow"
-        :show-peng="gameState.phase === 'reaction' && gameState.lastDiscardPlayer !== 0 && canPeng(gameState.hands[0], gameState.lastDiscard!)"
-        :show-ming-gang="gameState.phase === 'reaction' && gameState.lastDiscardPlayer !== 0 && canMingGang(gameState.hands[0], gameState.lastDiscard!)"
-        :show-pass="gameState.phase === 'reaction' && gameState.lastDiscardPlayer !== 0"
-        :show-discard="gameState.currentPlayer === 0 && gameState.phase === 'discard'"
-        :jia-gang-options="jiaGangOptions"
-        :an-gang-options="anGangOptions"
-        :selected-tile="selectedTile"
-        @discard="playerDiscard"
-        @peng="playerPeng"
-        @ming-gang="playerMingGang"
-        @jia-gang="(t, v) => playerJiaGang(t, v)"
-        @an-gang="(t, v) => playerAnGang(t, v)"
-        @hu="playerHu"
-        @pass="playerPass"
-      />
-
-      <AIAnalysisPanel
-        :result="aiResult"
-        :loading="aiLoading"
-        :error="aiError"
-        @analyze="analyzeCurrentGame"
-      />
-
-      <DiscardAdvisorVue
-        v-if="discardAdvice"
-        :evaluations="discardAdvice.evaluations"
-        :current-shanten="discardAdvice.currentShanten"
-      />
-
-      <ReactionAdvisorVue
-        v-if="reactionAdvice"
-        :analysis="reactionAdvice"
-      />
-
-      <div class="log-panel glass-panel">
-        <div
-          v-for="(msg, i) in gameLog.slice(-8)"
-          :key="i"
-          class="log-line"
-          :style="{ color: logColor(msg) }"
-        >{{ msg }}</div>
-      </div>
-      </template>
-
-      <template v-else>
-        <div class="game-row">
+      <div class="game-row">
         <div class="compact-main">
           <GameBoard
             :hands="gameState.hands"
@@ -161,8 +91,7 @@
             </div>
           </template>
         </InfoDrawer>
-        </div>
-      </template>
+      </div>
 
       <GameResult
         :show="(gameState.phase === 'hu' || gameState.phase === 'draw_end') && !revealMode"
@@ -450,6 +379,7 @@ watch(
 <style scoped>
 .game-view {
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -499,6 +429,9 @@ watch(
   box-shadow: var(--shadow-focus);
 }
 .game-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;

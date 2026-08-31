@@ -40,6 +40,7 @@ defineEmits<{
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
+  max-width: 100%;
 }
 .hand-label {
   font-size: var(--font-md);
@@ -47,6 +48,8 @@ defineEmits<{
 }
 .hand-tiles {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 2px;
   padding: var(--space-2);
   background: var(--color-surface);
@@ -55,11 +58,25 @@ defineEmits<{
   min-height: 80px;
   align-items: center;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25);
+  max-width: 100%;
 }
-@media (max-width: 720px) {
+/* 抽屉布局吃掉右侧 280px 后，窄宽度逐级缩小手牌保证单行放下（紧凑块在其后覆盖） */
+@media (max-width: 1080px) {
   .hand-tiles {
     --tile-w: 40px;
     --tile-h: 54px;
+  }
+}
+@media (max-width: 960px) {
+  .hand-tiles {
+    --tile-w: 34px;
+    --tile-h: 46px;
+  }
+}
+@media (max-width: 876px) {
+  .hand-tiles {
+    --tile-w: 28px;
+    --tile-h: 38px;
   }
 }
 
