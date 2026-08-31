@@ -62,7 +62,7 @@ function wallTilePlayer(index: number): number {
   return (props.currentPlayer + offsets[index % 4]) % 4;
 }
 
-const compact = useMediaQuery('(orientation: landscape) and (max-height: 520px)');
+const compact = useMediaQuery('(orientation: landscape) and (max-height: 560px)');
 
 const gridWrapRef = ref<HTMLElement | null>(null);
 const gridScale = ref(1);
@@ -163,7 +163,7 @@ watch(() => props.discardEntries, () => {
   font-size: 10px;
 }
 
-@media (orientation: landscape) and (max-height: 520px) {
+@media (orientation: landscape) and (max-height: 560px) {
   .discard-pool { gap: 2px; min-height: 0; overflow: hidden; }
   .discard-title { font-size: 10px; }
   .discard-grid-wrap {

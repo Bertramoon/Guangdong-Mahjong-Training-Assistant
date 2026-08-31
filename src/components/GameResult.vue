@@ -287,7 +287,7 @@ function formatDeltas(deltas: number[]): string {
   justify-content: center;
 }
 
-@media (orientation: landscape) and (max-height: 520px) {
+@media (orientation: landscape) and (max-height: 560px) {
   .result-card {
     max-height: calc(100vh - 32px);
     overflow-y: auto;

@@ -199,7 +199,7 @@ const aiConfig = ref<AIProviderConfig>(loadAIConfig());
 const seedInput = ref('');
 
 // 手机横屏（矮视口）紧凑布局开关
-const compact = useMediaQuery('(orientation: landscape) and (max-height: 520px)');
+const compact = useMediaQuery('(orientation: landscape) and (max-height: 560px)');
 const drawerOpen = ref(true);
 const drawerTabs = [
   { id: 'advice', label: '建议' },

@@ -71,7 +71,7 @@ const meldDirection = computed(() =>
 .other-discards :deep(.tile) { --tile-w: 24px; --tile-h: 32px; --tile-shadow: var(--shadow-tile-mini); font-size: 8px; }
 .other-melds { opacity: 0.85; }
 
-@media (orientation: landscape) and (max-height: 520px) {
+@media (orientation: landscape) and (max-height: 560px) {
   .other-player { gap: 2px; }
   .other-name { font-size: 10px; gap: 2px; }
   .tenpai-badge { font-size: 9px; padding: 0 3px; }

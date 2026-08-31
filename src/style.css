@@ -31,7 +31,7 @@ body::after {
 }
 
 /* 手机横屏紧凑布局：压缩页面留白，把高度留给牌桌 */
-@media (orientation: landscape) and (max-height: 520px) {
+@media (orientation: landscape) and (max-height: 560px) {
   #app {
     padding: 4px;
   }

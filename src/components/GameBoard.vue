@@ -237,7 +237,7 @@ const rightPlayerTenpai = computed(() => isTenpai(3));
   }
 }
 
-@media (orientation: landscape) and (max-height: 520px) {
+@media (orientation: landscape) and (max-height: 560px) {
   .game-board {
     min-height: 0;
     padding: 4px;

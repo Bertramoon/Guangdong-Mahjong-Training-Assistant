@@ -80,7 +80,7 @@ defineEmits<{
   }
 }
 
-@media (orientation: landscape) and (max-height: 520px) {
+@media (orientation: landscape) and (max-height: 560px) {
   .hand-tiles {
     --tile-w: 36px;
     --tile-h: 50px;

@@ -209,7 +209,7 @@ function onSave() {
   color: var(--color-text-inverse);
 }
 
-@media (orientation: landscape) and (max-height: 520px) {
+@media (orientation: landscape) and (max-height: 560px) {
   .modal-card {
     max-height: calc(100vh - 32px);
     overflow-y: auto;
