@@ -10,12 +10,15 @@
       <p class="result-detail">{{ detailText }}</p>
       <div v-if="fanDisplay" class="fan-info">
         <div class="fan-list">
-          <span
+          <div
             v-for="(fan, i) in fanDisplay.items"
             :key="fan.name"
-            class="fan-chip"
+            class="fan-item"
             :style="{ '--i': i }"
-          >{{ fan.name }}<em v-if="fan.value > 0"> +{{ fan.value }}</em></span>
+          >
+            <span class="fan-chip">{{ fan.name }}<em v-if="fan.value > 0"> +{{ fan.value }}</em></span>
+            <span class="fan-desc">{{ fanDescriptions[fan.name] ?? '' }}</span>
+          </div>
         </div>
         <div class="fan-total">{{ fanDisplay.totalFan }} 番 / {{ fanDisplay.score }} 分</div>
       </div>
@@ -68,6 +71,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import type { FanResult } from '../engine/scoring';
+import { FAN_DESCRIPTIONS } from '../engine/scoring';
 import type { Settlement } from '../engine/settlement';
 import type { Tile } from '../engine/types';
 import { getTileName } from '../engine/tile';
@@ -87,7 +91,7 @@ defineEmits<{
   'replay': [seed: number];
 }>();
 
-const PATTERN_FANS = ['清一色', '混一色', '字一色', '碰碰胡', '平和', '七对'];
+const fanDescriptions = FAN_DESCRIPTIONS;
 
 const titleText = computed(() => {
   if (props.winner === 0) return '你赢了！';
@@ -99,10 +103,7 @@ const detailText = computed(() => `总局数: ${props.turnCount} 轮`);
 
 const fanDisplay = computed(() => {
   if (!props.huResult || props.winner === null || props.winner < 0) return null;
-  const ctxFans = props.huResult.fans.filter(f => !PATTERN_FANS.includes(f.name));
-  const hasPattern = props.huResult.fans.some(f => PATTERN_FANS.includes(f.name));
-  const items = hasPattern ? props.huResult.fans : [{ name: '鸡胡', value: 0 }, ...ctxFans];
-  return { items, totalFan: props.huResult.totalFan, score: props.huResult.score };
+  return { items: props.huResult.fans, totalFan: props.huResult.totalFan, score: props.huResult.score };
 });
 
 const copied = ref(false);
@@ -175,6 +176,15 @@ function formatDeltas(deltas: number[]): string {
   justify-content: center;
   margin-bottom: var(--space-2);
 }
+.fan-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  opacity: 0;
+  animation: fanChipIn var(--dur-slow) var(--ease-out) forwards;
+  animation-delay: calc(var(--i) * 80ms);
+}
 .fan-chip {
   display: inline-block;
   padding: 3px 12px;
@@ -183,14 +193,19 @@ function formatDeltas(deltas: number[]): string {
   border: 1px solid rgba(51, 136, 204, 0.28);
   font-size: var(--font-sm);
   color: var(--color-text-inverse);
-  opacity: 0;
-  animation: fanChipIn var(--dur-slow) var(--ease-out) forwards;
-  animation-delay: calc(var(--i) * 80ms);
+  white-space: nowrap;
 }
 .fan-chip em {
   font-style: normal;
   font-weight: 700;
   color: var(--color-accent);
+}
+.fan-desc {
+  max-width: 150px;
+  font-size: var(--font-xs);
+  line-height: 1.35;
+  color: var(--color-text-muted);
+  text-align: center;
 }
 .fan-total {
   font-size: var(--font-lg);

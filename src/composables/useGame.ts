@@ -15,7 +15,7 @@ import { robotDiscard, robotShouldPeng, robotShouldMingGang, robotShouldJiaGang 
 import { shouldPlaySmart } from '../robot/difficulty';
 import type { DiscardRecommendation, ReactionAnalysis } from '../engine/advisor';
 import { discardRecommendation, reactionAnalysis } from '../engine/compute-client';
-import { calculateFan, type FanResult } from '../engine/scoring';
+import { calculateFan, type FanContext, type FanResult } from '../engine/scoring';
 import { computeSettlement, type Settlement } from '../engine/settlement';
 
 export function useGame(settings: Ref<AppSettings>) {
@@ -295,6 +295,17 @@ export function useGame(settings: Ref<AppSettings>) {
     autoPlayUntilPlayer().catch(err => console.error('autoplay error', err));
   }
 
+  /** 胡牌计分上下文：杠上开花 + 天胡/地胡（纯推倒胡大小胡体系）。 */
+  function huContext(game: GameState, winner: number): FanContext {
+    const meldsEmpty = game.melds.every(m => m.length === 0);
+    const noDiscards = game.discards.every(d => d.length === 0);
+    return {
+      isKongBlossom: game.lastDrawSource === 'gang_replacement',
+      isHeavenlyHu: winner === dealerIndex.value && noDiscards && meldsEmpty,
+      isEarthlyHu: winner !== dealerIndex.value && meldsEmpty && game.discards.every(d => d.length <= 1),
+    };
+  }
+
   function playerHu() {
     const game = gameState.value;
     if (!game) return;
@@ -303,7 +314,7 @@ export function useGame(settings: Ref<AppSettings>) {
       game.melds[0],
       game.ghostType,
       game.ghostValue,
-      { isSelfDraw: true, isKongBlossom: game.lastDrawSource === 'gang_replacement' },
+      huContext(game, 0),
     );
     const next = { ...game, phase: 'hu' as const, winner: 0 };
     addLog('你胡了！');
@@ -421,7 +432,7 @@ export function useGame(settings: Ref<AppSettings>) {
             afterDraw.melds[player],
             afterDraw.ghostType,
             afterDraw.ghostValue,
-            { isSelfDraw: true, isKongBlossom: afterDraw.lastDrawSource === 'gang_replacement' },
+            huContext(afterDraw, player),
           );
           gameState.value = { ...afterDraw, phase: 'hu' as const, winner: player };
           return;
