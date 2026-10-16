@@ -13,6 +13,12 @@ export function canHu(hand: Tile[], ghostType: TileType | null, ghostValue: numb
     ? hand.filter(t => t.type === ghostType && t.value === ghostValue).length
     : 0;
 
+  // 满鬼：手牌集齐 4 张鬼牌，可直接胡
+  if (ghostCount === 4) return true;
+
+  // 十三幺：13 张幺九字牌 + 其中一张成对（须门清 14 张）
+  if (isThirteenOrphans(hand, ghostType, ghostValue)) return true;
+
   const normalHand = ghostCount > 0
     ? hand.filter(t => !(t.type === ghostType && t.value === ghostValue))
     : [...hand];
@@ -22,6 +28,43 @@ export function canHu(hand: Tile[], ghostType: TileType | null, ghostValue: numb
   }
 
   return canHuWithGhost(normalHand, ghostCount);
+}
+
+const ORPHAN_KEYS = new Set<string>([
+  'wan-1', 'wan-9', 'tiao-1', 'tiao-9', 'tong-1', 'tong-9',
+  'feng-1', 'feng-2', 'feng-3', 'feng-4', 'jian-1', 'jian-2', 'jian-3',
+]);
+
+function orphanKey(t: Tile): string {
+  return `${t.type}-${t.value}`;
+}
+
+/** 十三幺结构：13 张幺九字牌 + 其中一张成对；鬼牌可补缺或凑对 */
+export function isThirteenOrphans(
+  hand: Tile[],
+  ghostType: TileType | null,
+  ghostValue: number | null,
+): boolean {
+  const ghostCount = ghostType !== null && ghostValue !== null
+    ? hand.filter(t => t.type === ghostType && t.value === ghostValue).length
+    : 0;
+  const nonGhost = hand.filter(t => !isGhostTileIn(t, ghostType, ghostValue));
+  if (nonGhost.length + ghostCount !== 14) return false;
+  if (!nonGhost.every(t => ORPHAN_KEYS.has(orphanKey(t)))) return false;
+
+  const counts = new Map<string, number>();
+  for (const t of nonGhost) {
+    const key = orphanKey(t);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  if ([...counts.values()].some(c => c > 2)) return false;
+
+  const missing = ORPHAN_KEYS.size - counts.size;
+  return missing <= ghostCount;
+}
+
+function isGhostTileIn(t: Tile, ghostType: TileType | null, ghostValue: number | null): boolean {
+  return ghostType !== null && ghostValue !== null && t.type === ghostType && t.value === ghostValue;
 }
 
 /** 标准胡牌判定（无鬼牌） */

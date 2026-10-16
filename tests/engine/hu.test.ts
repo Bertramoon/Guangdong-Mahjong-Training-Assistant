@@ -132,6 +132,30 @@ describe('isSelfHu', () => {
     ];
     expect(isSelfHu(hand, 'wan', 1)).toBe(false);
   });
+
+  it('满鬼：4张鬼牌直接胡，即使其余牌无法成面', () => {
+    // 东×3 南×2 西 北 中发白 各1 + 4张鬼牌(条1)：常规判定无解，满鬼规则直接胡
+    const hand: Tile[] = [
+      h('f',1),h('f',1),h('f',1),
+      h('f',2),h('f',2),
+      h('f',3),h('f',4),
+      h('j',1),h('j',2),h('j',3),
+      h('t',1),h('t',1),h('t',1),h('t',1),
+    ];
+    expect(canHu(hand, 'tiao', 1)).toBe(true);
+    expect(isSelfHu(hand, 'tiao', 1)).toBe(true);
+  });
+
+  it('十三幺：幺九字牌结构可胡（含成对）', () => {
+    const hand: Tile[] = [
+      h('w',1),h('w',9),
+      h('t',1),h('t',9),
+      h('g',1),h('g',9),
+      h('f',1),h('f',2),h('f',3),h('f',4),
+      h('j',1),h('j',1),h('j',2),h('j',3),
+    ];
+    expect(canHu(hand, null, null)).toBe(true);
+  });
 });
 
 describe('边界情况', () => {
