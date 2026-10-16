@@ -134,7 +134,6 @@ const rightPlayerTenpai = computed(() => isTenpai(3));
   isolation: isolate;
   width: 100%;
   max-width: 1100px;
-  min-height: 700px;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -210,6 +209,18 @@ const rightPlayerTenpai = computed(() => isTenpai(3));
   display: flex;
   align-items: center;
 }
+/* 侧列限宽 + 手牌换行：给中央弃牌池让出宽度（与紧凑档同规则，全模式通用） */
+.board-left,
+.board-right {
+  max-width: 225px;
+  min-width: 0;
+}
+.board-left :deep(.other-hand),
+.board-right :deep(.other-hand) {
+  flex-wrap: wrap;
+  max-width: 100%;
+  justify-content: center;
+}
 .board-bottom {
   display: flex;
   flex-direction: column;
@@ -220,10 +231,56 @@ const rightPlayerTenpai = computed(() => isTenpai(3));
 @media (max-width: 880px) {
   .game-board {
     padding: var(--space-2);
-    min-height: 600px;
   }
   .board-middle {
     gap: var(--space-3);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .game-board {
+    min-height: 0;
+    padding: 4px;
+    gap: 4px;
+  }
+  .board-top {
+    flex-shrink: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .board-middle {
+    gap: 4px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .board-center {
+    align-self: stretch;
+    min-height: 0;
+  }
+  .board-bottom {
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .turn-info {
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+  .game-board :deep(.meld-area) {
+    gap: 2px;
+    padding: 0;
+  }
+  .game-board :deep(.meld-area .tile) {
+    --tile-w: 16px;
+    --tile-h: 22px;
+    border-radius: 2px;
+  }
+  .game-board :deep(.meld-group) {
+    gap: 1px;
+    padding: 1px 2px;
+  }
+  .game-board :deep(.meld-type-label) {
+    font-size: 9px;
+    margin-left: 1px;
   }
 }
 </style>

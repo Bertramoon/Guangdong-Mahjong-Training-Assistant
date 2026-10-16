@@ -151,3 +151,45 @@ html {
     background: rgba(11, 19, 13, 0.96);
   }
 }
+
+/* —— 移动端 / WebView 适配 —— */
+/* 撑满视口，禁橡皮筋滚动与双击缩放（页面本身不滚动，由内部面板滚动） */
+html,
+body,
+#app {
+  height: 100%;
+}
+/* 舞台容器撑满视口（宽度铺满、不许按内容收缩），供 .game-view 的 height:100% 生效；
+   stage--scaled 时另有 fixed 尺寸接管 */
+.stage {
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+}
+body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+button,
+[role='button'] {
+  touch-action: manipulation;
+}
+
+/* —— 紧凑档舞台缩放：舞台设计尺寸 = 视口 ÷ 缩放，缩放后精确铺满视口 —— */
+.stage--scaled {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: calc(100vw / var(--stage-scale, 1));
+  height: calc(100vh / var(--stage-scale, 1));
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+  transform-origin: center;
+}
+
+/* wave-13：结构规则（game-view / game-container / game-row / compact-main /
+   game-board / game-drawer 的 flex 链）已提升为全模式通用（见 GameView.vue），
+   此处只留舞台专属定位与 start-screen 居中。 */
+.stage--scaled .start-screen {
+  margin-top: auto;
+  margin-bottom: auto;
+}

@@ -355,6 +355,14 @@ export function useGame(settings: Ref<AppSettings>) {
             const tile = await chooseRobotDiscard(afterDraw.hands[i], afterDraw.ghostType, afterDraw.ghostValue);
             const afterDiscard = discardPhase(afterDraw, tile);
             addLog(`机器人${i}打出: ${getTileName(tile)}`);
+            // 机器人杠后续打的牌，玩家可能能碰/杠（与 executeRobotTurn 的延续路径一致）
+            if (canPeng(afterDiscard.hands[0], tile) || canMingGang(afterDiscard.hands[0], tile)) {
+              gameState.value = { ...afterDiscard, phase: 'reaction', currentPlayer: 0 };
+              highlightedTileIds.value = afterDiscard.hands[0]
+                .filter(t => t.type === tile.type && t.value === tile.value)
+                .map(t => t.id);
+              return;
+            }
             gameState.value = afterDiscard;
           }
         }
@@ -371,6 +379,14 @@ export function useGame(settings: Ref<AppSettings>) {
           const tile = await chooseRobotDiscard(afterPeng.hands[i], afterPeng.ghostType, afterPeng.ghostValue);
           const afterDiscard = discardPhase(afterPeng, tile);
           addLog(`机器人${i}打出: ${getTileName(tile)}`);
+          // 机器人碰后续打的牌，玩家可能能碰/杠（与 executeRobotTurn 的延续路径一致）
+          if (canPeng(afterDiscard.hands[0], tile) || canMingGang(afterDiscard.hands[0], tile)) {
+            gameState.value = { ...afterDiscard, phase: 'reaction', currentPlayer: 0 };
+            highlightedTileIds.value = afterDiscard.hands[0]
+              .filter(t => t.type === tile.type && t.value === tile.value)
+              .map(t => t.id);
+            return;
+          }
           gameState.value = afterDiscard;
         }
         return;

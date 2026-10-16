@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="felt" cx="50%" cy="32%" r="80%">
+      <stop offset="0%" stop-color="#2a7a4f"/>
+      <stop offset="100%" stop-color="#123f28"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#felt)"/>
+  <defs>
+    <linearGradient id="zhongGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8543f"/>
+      <stop offset="100%" stop-color="#b3271c"/>
+    </linearGradient>
+    <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12.288"/>
+    </filter>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&amp;display=swap');</style>
+  </defs>
+  <g transform="rotate(-10 512 512)">
+    <ellipse cx="512" cy="921.6" rx="368.64" ry="56.32"
+      fill="rgba(0,0,0,0.3)" filter="url(#softBlur)"/>
+    <g transform="translate(215.04, 112.64)">
+      <rect x="20.48" y="22.528" width="599.04" height="798.72" rx="71.68" fill="#d9d2bd"/>
+      <rect width="599.04" height="798.72" rx="71.68" fill="#f7f3e8"/>
+      <rect width="599.04" height="798.72" rx="71.68"
+        fill="none" stroke="#c9c2ad" stroke-width="10.24"/>
+      <rect x="56.32" y="51.2" width="486.4" height="307.2" rx="56.32"
+        fill="rgba(255,255,255,0.35)"/>
+      <text x="299.52" y="409.6"
+        dominant-baseline="central"
+        font-family="Ma Shan Zheng, KaiTi, STKaiti, serif" font-size="614.4"
+        font-weight="bold" fill="url(#zhongGrad)" stroke="#8f1d14" stroke-width="10.24"
+        paint-order="stroke" text-anchor="middle">中</text>
+    </g>
+  </g>
+</svg>

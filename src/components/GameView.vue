@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <div v-else class="game-container">
+    <div v-else class="game-container" :class="{ 'game-container--compact': compact }">
       <div class="top-bar">
         <div class="top-bar-info">
           <span class="ghost-badge">鬼牌: {{ ghostName }}</span>
@@ -29,63 +29,69 @@
         </div>
       </div>
 
-      <GameBoard
-        :hands="gameState.hands"
-        :melds="gameState.melds"
-        :discards="gameState.discards"
-        :discard-order="gameState.discardOrder"
-        :selected-tile-id="selectedTile?.id ?? null"
-        :highlighted-tile-ids="highlightedTileIds"
-        :matched-tile-ids="matchedTileIds"
-        :ghost-type="gameState.ghostType"
-        :ghost-value="gameState.ghostValue"
-        :ghost-name="ghostName"
-        :current-player="gameState.currentPlayer"
-        :phase="gameState.phase"
-        :turn-text="`轮次: ${gameState.turnCount} | 当前: ${currentPlayerName}`"
-        :reveal-mode="revealMode || appSettings.robotOpenHand"
-        :wall-tiles="revealMode ? gameState.wall : undefined"
-        @select-tile="selectTile"
-      />
+      <div class="game-row">
+        <div class="compact-main">
+          <GameBoard
+            :hands="gameState.hands"
+            :melds="gameState.melds"
+            :discards="gameState.discards"
+            :discard-order="gameState.discardOrder"
+            :selected-tile-id="selectedTile?.id ?? null"
+            :highlighted-tile-ids="highlightedTileIds"
+            :matched-tile-ids="matchedTileIds"
+            :ghost-type="gameState.ghostType"
+            :ghost-value="gameState.ghostValue"
+            :ghost-name="ghostName"
+            :current-player="gameState.currentPlayer"
+            :phase="gameState.phase"
+            :turn-text="`轮次: ${gameState.turnCount} | 当前: ${currentPlayerName}`"
+            :reveal-mode="revealMode || appSettings.robotOpenHand"
+            :wall-tiles="revealMode ? gameState.wall : undefined"
+            @select-tile="selectTile"
+          />
 
-      <ActionPanel
-        :phase="gameState.phase"
-        :current-player="gameState.currentPlayer"
-        :last-discard-player="gameState.lastDiscardPlayer"
-        :can-hu="canHuNow"
-        :show-peng="gameState.phase === 'reaction' && gameState.lastDiscardPlayer !== 0 && canPeng(gameState.hands[0], gameState.lastDiscard!)"
-        :show-ming-gang="gameState.phase === 'reaction' && gameState.lastDiscardPlayer !== 0 && canMingGang(gameState.hands[0], gameState.lastDiscard!)"
-        :show-pass="gameState.phase === 'reaction' && gameState.lastDiscardPlayer !== 0"
-        :show-discard="gameState.currentPlayer === 0 && gameState.phase === 'discard'"
-        :jia-gang-options="jiaGangOptions"
-        :an-gang-options="anGangOptions"
-        :selected-tile="selectedTile"
-        @discard="playerDiscard"
-        @peng="playerPeng"
-        @ming-gang="playerMingGang"
-        @jia-gang="(t, v) => playerJiaGang(t, v)"
-        @an-gang="(t, v) => playerAnGang(t, v)"
-        @hu="playerHu"
-        @pass="playerPass"
-      />
-
-      <AIAnalysisPanel
-        :result="aiResult"
-        :loading="aiLoading"
-        :error="aiError"
-        @analyze="analyzeCurrentGame"
-      />
-
-      <DiscardAdvisorVue
-        v-if="discardAdvice"
-        :evaluations="discardAdvice.evaluations"
-        :current-shanten="discardAdvice.currentShanten"
-      />
-
-      <ReactionAdvisorVue
-        v-if="reactionAdvice"
-        :analysis="reactionAdvice"
-      />
+          <ActionPanel
+            :phase="gameState.phase"
+            :current-player="gameState.currentPlayer"
+            :last-discard-player="gameState.lastDiscardPlayer"
+            :can-hu="canHuNow"
+            :show-peng="gameState.phase === 'reaction' && gameState.lastDiscardPlayer !== 0 && canPeng(gameState.hands[0], gameState.lastDiscard!)"
+            :show-ming-gang="gameState.phase === 'reaction' && gameState.lastDiscardPlayer !== 0 && canMingGang(gameState.hands[0], gameState.lastDiscard!)"
+            :show-pass="gameState.phase === 'reaction' && gameState.lastDiscardPlayer !== 0"
+            :show-discard="gameState.currentPlayer === 0 && gameState.phase === 'discard'"
+            :jia-gang-options="jiaGangOptions"
+            :an-gang-options="anGangOptions"
+            :selected-tile="selectedTile"
+            @discard="playerDiscard"
+            @peng="playerPeng"
+            @ming-gang="playerMingGang"
+            @jia-gang="(t, v) => playerJiaGang(t, v)"
+            @an-gang="(t, v) => playerAnGang(t, v)"
+            @hu="playerHu"
+            @pass="playerPass"
+          />
+        </div>
+        <InfoDrawer v-model:open="drawerOpen" :tabs="drawerTabs" class="game-drawer">
+          <template #ai>
+            <AIAnalysisPanel :result="aiResult" :loading="aiLoading" :error="aiError" @analyze="analyzeCurrentGame" />
+          </template>
+          <template #advice>
+            <DiscardAdvisorVue v-if="discardAdvice" :evaluations="discardAdvice.evaluations" :current-shanten="discardAdvice.currentShanten" />
+            <ReactionAdvisorVue v-else-if="reactionAdvice" :analysis="reactionAdvice" />
+            <p v-else class="drawer-empty">轮到你出牌或需要应对时，这里会显示推荐</p>
+          </template>
+          <template #log>
+            <div class="log-panel log-panel--drawer glass-panel">
+              <div
+                v-for="(msg, i) in gameLog.slice(-8)"
+                :key="i"
+                class="log-line"
+                :style="{ color: logColor(msg) }"
+              >{{ msg }}</div>
+            </div>
+          </template>
+        </InfoDrawer>
+      </div>
 
       <GameResult
         :show="(gameState.phase === 'hu' || gameState.phase === 'draw_end') && !revealMode"
@@ -98,15 +104,6 @@
         @view-details="revealMode = true"
         @replay="handleReplay"
       />
-
-      <div class="log-panel glass-panel">
-        <div
-          v-for="(msg, i) in gameLog.slice(-8)"
-          :key="i"
-          class="log-line"
-          :style="{ color: logColor(msg) }"
-        >{{ msg }}</div>
-      </div>
     </div>
 
     <SettingsModal
@@ -137,6 +134,10 @@ import ActionPanel from './ActionPanel.vue';
 import GameResult from './GameResult.vue';
 import DiscardAdvisorVue from './DiscardAdvisor.vue';
 import ReactionAdvisorVue from './ReactionAdvisor.vue';
+import { Capacitor } from '@capacitor/core';
+import { resolveBackAction } from '../composables/useBackButton';
+import InfoDrawer from './InfoDrawer.vue';
+import { useMediaQuery } from '../composables/useMediaQuery';
 
 const appSettings = ref<AppSettings>(loadSettings());
 
@@ -196,6 +197,55 @@ const revealMode = ref(false);
 const aiConfig = ref<AIProviderConfig>(loadAIConfig());
 
 const seedInput = ref('');
+
+// 手机横屏（矮视口）紧凑布局开关
+const compact = useMediaQuery('(orientation: landscape) and (max-height: 560px)');
+const drawerOpen = ref(true);
+const drawerTabs = [
+  { id: 'advice', label: '建议' },
+  { id: 'ai', label: 'AI 分析' },
+  { id: 'log', label: '日志' },
+] as const;
+
+// Android 返回键：关弹窗 → 退复盘 → 2 秒内双击退出（仅原生环境注册）
+onMounted(() => {
+  if (!Capacitor.isNativePlatform()) return;
+  void (async () => {
+    const { App } = await import('@capacitor/app');
+    const { Toast } = await import('@capacitor/toast');
+    let exitArmed = false;
+    let armTimer: ReturnType<typeof setTimeout> | undefined;
+    await App.addListener('backButton', () => {
+      const action = resolveBackAction({
+        settingsOpen: showSettings.value,
+        gameResultOpen: (gameState.value?.phase === 'hu' || gameState.value?.phase === 'draw_end') && !revealMode.value,
+        revealMode: revealMode.value,
+        exitArmed,
+      });
+      if (action === 'ignore') {
+        return;
+      }
+      if (action === 'close-settings') {
+        showSettings.value = false;
+        return;
+      }
+      if (action === 'close-reveal') {
+        revealMode.value = false;
+        return;
+      }
+      if (action === 'exit') {
+        void App.exitApp();
+        return;
+      }
+      exitArmed = true;
+      void Toast.show({ text: '再按一次退出' });
+      clearTimeout(armTimer);
+      armTimer = setTimeout(() => {
+        exitArmed = false;
+      }, 2000);
+    });
+  })();
+});
 
 async function handleStart() {
   if (!initialized.value || starting.value) return;
@@ -329,6 +379,7 @@ watch(
 <style scoped>
 .game-view {
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -378,6 +429,9 @@ watch(
   box-shadow: var(--shadow-focus);
 }
 .game-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -428,5 +482,68 @@ watch(
   font-size: var(--font-sm);
   color: var(--color-text-muted);
   line-height: 1.6;
+}
+
+/* —— 手机横屏紧凑布局：上（顶栏）/下（棋盘行）两段式，上下边界钉死 —— */
+.game-container--compact {
+  width: 100%;
+  gap: 0;
+  padding: 0 max(env(safe-area-inset-right), 4px) 0 max(env(safe-area-inset-left), 4px);
+}
+.game-container--compact .top-bar {
+  max-width: none;
+  padding: 0 8px;
+}
+.game-container--compact .top-bar .btn {
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.game-container--compact .ghost-badge,
+.game-container--compact .seed-badge {
+  padding: 1px 8px;
+  font-size: 12px;
+}
+.game-row {
+  flex: 1 1 auto;
+  min-height: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  padding: 0 4px 8px;
+}
+.game-row .compact-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.game-row .game-drawer {
+  flex: 0 0 280px;
+  min-width: 0;
+  height: auto;
+  align-self: stretch;
+}
+.game-row .compact-main .game-board {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.game-drawer.info-drawer--closed {
+  flex: 0 0 20px;
+}
+.drawer-empty {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  padding: var(--space-4);
+  text-align: center;
+}
+.log-panel--drawer {
+  width: 100%;
+  max-height: none;
+  height: 100%;
 }
 </style>

@@ -8,14 +8,25 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "android:build": "vue-tsc -b && vite build && cap sync",
+    "android:install": "npm run android:build && cap run android",
+    "android:dev": "cap run android -l --external"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/toast": "^8.0.1",
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.0",
     "@vitejs/plugin-vue": "^5.2.3",
+    "@vue/test-utils": "^2.5.0",
     "@vue/tsconfig": "^0.7.0",
+    "happy-dom": "^20.11.15",
     "typescript": "~5.7.2",
     "vite": "^6.2.4",
     "vitest": "^3.1.1",

@@ -208,4 +208,13 @@ function onSave() {
   font-size: var(--font-md);
   color: var(--color-text-inverse);
 }
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .modal-card {
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    padding: var(--space-4);
+    gap: var(--space-2);
+  }
+}
 </style>

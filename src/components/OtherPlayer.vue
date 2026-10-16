@@ -70,4 +70,38 @@ const meldDirection = computed(() =>
 .other-discards { display: flex; gap: 1px; }
 .other-discards :deep(.tile) { --tile-w: 24px; --tile-h: 32px; --tile-shadow: var(--shadow-tile-mini); font-size: 8px; }
 .other-melds { opacity: 0.85; }
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .other-player { gap: 2px; }
+  .other-name { font-size: 10px; gap: 2px; }
+  .tenpai-badge { font-size: 9px; padding: 0 3px; }
+  .other-hand :deep(.tile) { --tile-w: 16px; --tile-h: 22px; border-radius: 2px; }
+  .other-discards :deep(.tile) { --tile-w: 15px; --tile-h: 20px; border-radius: 2px; }
+  .other-hand { order: 2; }
+  .other-discards { order: 3; }
+  .other-melds { order: 4; }
+  .other-player .other-melds :deep(.meld-area .tile) { --tile-w: 16px; --tile-h: 22px; border-radius: 2px; }
+  .other-player .other-melds :deep(.meld-group) { padding: 1px 2px; gap: 1px; }
+  .other-player .other-melds :deep(.meld-area) { gap: 1px; padding: 0; }
+  .other-player .other-melds :deep(.meld-type-label) { font-size: 8px; margin-left: 1px; }
+  /* 侧位（机器人1/3）改横向环绕：纵向高度骤降，不再超出 board-middle 被两端截断 */
+  .board-left .other-player,
+  .board-right .other-player {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    row-gap: 2px;
+    column-gap: 6px;
+    max-width: 100%;
+  }
+  .board-left .other-name,
+  .board-right .other-name { flex: 1 1 100%; }
+  .board-left .other-melds :deep(.meld-area),
+  .board-right .other-melds :deep(.meld-area) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
 </style>
