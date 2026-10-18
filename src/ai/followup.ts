@@ -146,13 +146,13 @@ export async function answerQuestion(
 历史假设不受本轮合法弃牌列表约束，不能因为所提牌不在本轮手牌中就拒绝讨论；历史数值没有依据时说明无法精确复算，而不是编造。
 按需解释结构，未经验证的路线只能说是可能。指代不明确时简短澄清，不猜测比较对象。
 手牌中的鬼牌不能打；不在本地合法候选中的牌不能作为弃牌方案。
-返回JSON：{"answer":"针对问题的解释","comparisonTiles":["两个被比较的候选key"]}。
-只有用户明确要求比较且对象清楚时返回两个key；其他情况返回空数组。无需重新推荐或套用300字单次分析格式。`;
+直接用自然语言回答，不返回 JSON、代码围栏或候选 key 等内部格式。共有与独有进张的对比由程序负责展示。
+无需重新推荐或套用300字单次分析格式。`;
   const response = await callAI(config, [
     { role: 'system', content: system },
     { role: 'user', content: `讨论范围：本轮第 ${snapshot.game.turnCount} 轮的快照。下列本地证据不包含前几轮的分析记录。\n${snapshot.context}\n本地候选证据：${JSON.stringify(evidence)}\n已明确的本地对比：${JSON.stringify(comparison)}` },
     ...history, { role: 'user', content: question },
-  ], 0.3, 4096, signal);
+  ], 0.3, 4096, signal, 'text');
   if (response.error) throw new Error(response.error);
   const parsed = readFollowupReply(response.content);
   const keys = Array.isArray(parsed.comparisonTiles) && parsed.comparisonTiles.every(k => typeof k === 'string') ? parsed.comparisonTiles as string[] : [];

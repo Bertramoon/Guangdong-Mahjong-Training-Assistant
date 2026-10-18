@@ -110,6 +110,8 @@ describe('followup evidence', () => {
     const result = await answerQuestion({ endpoint: 'https://example.test', apiKey:'key', model:'test' }, captureSnapshot(game), [ev(4,[1]),ev(7,[2])], [{role:'assistant',content:'之前的解释'}], '继续解释', null);
     expect(body.messages.some((m: any) => m.role === 'assistant')).toBe(true);
     expect(body.messages[0].content).toContain('未扣除可见牌');
+    expect(body).not.toHaveProperty('response_format');
+    expect(body.messages[0].content).not.toContain('返回JSON：');
     expect(body.messages[1].content).toContain('tong-4');
     expect(JSON.stringify(body)).not.toContain('54321');
     expect(result.comparison).toBeNull();
