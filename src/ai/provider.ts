@@ -11,16 +11,23 @@ export interface AIResponse {
   error?: string;
 }
 
+export interface AIMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
 export async function callAI(
   config: AIProviderConfig,
-  messages: { role: 'system' | 'user'; content: string }[],
+  messages: AIMessage[],
   temperature?: number,
   maxTokens?: number,
+  signal?: AbortSignal,
 ): Promise<AIResponse> {
   const url = config.endpoint.replace(/\/+$/, '') + '/v1/chat/completions';
 
   try {
     const response = await fetch(url, {
+      signal,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

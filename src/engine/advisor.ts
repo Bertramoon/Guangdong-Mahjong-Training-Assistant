@@ -126,6 +126,7 @@ export function getDiscardRecommendation(
   ghostType: TileType | null,
   ghostValue: number | null,
   meldCount: number = 0,
+  limit: number = 10,
 ): DiscardRecommendation {
   const isGhost = (t: Tile) =>
     ghostType !== null && t.type === ghostType && t.value === ghostValue;
@@ -160,7 +161,7 @@ export function getDiscardRecommendation(
     return b.acceptanceCount - a.acceptanceCount;
   });
 
-  const top10 = evaluations.slice(0, 10);
+  const top10 = evaluations.slice(0, limit);
   const currentShanten = top10.length > 0 ? top10[0].shanten : 8;
 
   return { evaluations: top10, currentShanten };

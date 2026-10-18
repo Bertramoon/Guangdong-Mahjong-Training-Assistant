@@ -51,6 +51,13 @@ const active = ref<string>(props.tabs[0]?.id ?? '');
   overflow: hidden;
   transition: flex-basis var(--dur-fast) var(--ease-out);
 }
+.drawer-inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
 .drawer-tabs {
   display: flex;
   gap: 4px;

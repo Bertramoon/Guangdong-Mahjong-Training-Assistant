@@ -72,15 +72,16 @@ export async function discardRecommendation(
   ghostType: TileType,
   ghostValue: number,
   meldCount: number,
+  limit: number = 10,
 ): Promise<DiscardRecommendation> {
   await readyPromise;
-  if (failed) return mainDiscard(hand, ghostType, ghostValue, meldCount);
+  if (failed) return mainDiscard(hand, ghostType, ghostValue, meldCount, limit);
   try {
-    return (await rpc('discardRecommendation', { hand, ghostType, ghostValue, meldCount })) as DiscardRecommendation;
+    return (await rpc('discardRecommendation', { hand, ghostType, ghostValue, meldCount, limit })) as DiscardRecommendation;
   } catch (err) {
     failed = true;
     console.warn('[向听worker] 出牌建议计算失败，回退主线程:', err);
-    return mainDiscard(hand, ghostType, ghostValue, meldCount);
+    return mainDiscard(hand, ghostType, ghostValue, meldCount, limit);
   }
 }
 

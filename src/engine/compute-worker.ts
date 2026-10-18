@@ -24,7 +24,7 @@ self.onmessage = async (e: MessageEvent) => {
 
   if (msg.type === 'discardRecommendation') {
     try {
-      const result = getDiscardRecommendation(msg.hand, msg.ghostType, msg.ghostValue, msg.meldCount);
+      const result = getDiscardRecommendation(msg.hand, msg.ghostType, msg.ghostValue, msg.meldCount, msg.limit);
       self.postMessage({ type: 'result', id: msg.id, result });
     } catch (err) {
       self.postMessage({ type: 'result', id: msg.id, error: String(err) });
