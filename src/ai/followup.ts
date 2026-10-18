@@ -66,7 +66,28 @@ export function namedTiles(text: string): string[] {
 
 const comparisonIntent = (text: string) => /比较|对比|相比|区别|差异|还是|哪[个种]|两[种张]|分别|换成|比.*[更好]/.test(text);
 
+// Earlier-round claims and counterfactuals are not proposals to discard from this hand.
+const earlierRoundQuestion = (text: string) => /前[面几]*[一二三四五六七八九十\d]*(?:轮|回合)|(?:前面|之前|当时|上一轮|上几轮).{0,30}(?:留|打|出|弃|建议|推荐)/.test(text);
+
+function questionScope(text: string): { text: string; historical: boolean } {
+  // Track clauses so historical remarks before OR after a current question do not
+  // turn their tile names into current candidates. A counterfactual keeps its scope.
+  const current: string[] = [];
+  let historical = false;
+  let counterfactual = false;
+  for (const clause of text.split(/[，,。；;！？?]/).map(part => part.trim()).filter(Boolean)) {
+    if (/如果|假如|假设|要是/.test(clause)) counterfactual = true;
+    if (earlierRoundQuestion(clause)) historical = true;
+    else if (/现在|本轮|这轮|当前/.test(clause) && !counterfactual) historical = false;
+    if (!historical && !/^(?:我是说|你看|我的意思是|我想问的是)$/.test(clause)) current.push(clause);
+  }
+  return { text: current.join('，'), historical: current.length === 0 };
+}
+
 export function resolveQuestionTiles(question: string, evaluations: DiscardEvaluation[], recommendation?: string, previous: string[] = []): string[] {
+  const scope = questionScope(question);
+  if (scope.historical) return [];
+  question = scope.text;
   const mentions = tileMentions(question);
   const explicit = [...new Set(mentions.filter(m => m.role === 'discard' || (m.role === 'unknown' && comparisonIntent(question))).map(m => m.key))];
   const legal = new Set(evaluations.map(e => tileKey(e.discardTile)));
@@ -82,32 +103,60 @@ export function resolveQuestionTiles(question: string, evaluations: DiscardEvalu
   return [];
 }
 
+function readFollowupReply(content: string): { answer: string; comparisonTiles?: unknown } {
+  const text = content.trim();
+  if (!text || /^\s*<(?:!doctype\b|html\b|body\b)/i.test(text)) {
+    throw new Error('AI 服务未返回有效回答，请重试。');
+  }
+  const candidates = [text, ...Array.from(text.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi), match => match[1].trim())];
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start !== -1 && end > start && /"answer"\s*:/.test(text.slice(start, end + 1))) candidates.push(text.slice(start, end + 1));
+  let parsedJSON = false;
+  for (const candidate of candidates) {
+    let parsed: unknown;
+    try { parsed = JSON.parse(candidate); }
+    catch { continue; }
+    parsedJSON = true;
+    if (typeof parsed === 'string' && parsed.trim()) return { answer: parsed.trim() };
+    if (parsed && typeof parsed === 'object' && 'answer' in parsed && typeof parsed.answer === 'string' && parsed.answer.trim()) {
+      return { answer: parsed.answer.trim(), comparisonTiles: 'comparisonTiles' in parsed ? parsed.comparisonTiles : undefined };
+    }
+  }
+  if (parsedJSON) throw new Error('AI 未返回有效回答，请重试。');
+  if (/^[{\[]|^```|\{\s*"(?:answer|comparisonTiles)"\s*:|```json\b/i.test(text)) throw new Error('AI 回答格式不完整或无法识别，请重试。');
+  // Some compatible providers ignore JSON output mode. A readable text reply is still usable.
+  return { answer: text };
+}
+
 export async function answerQuestion(
   config: AIProviderConfig, snapshot: AnalysisSnapshot, evaluations: DiscardEvaluation[],
   history: AIMessage[], question: string, comparison: DiscardComparison | null, signal?: AbortSignal,
 ): Promise<FollowupAnswer> {
   const evidence = evaluations.map(e => ({ key: tileKey(e.discardTile), discard: tileLabel(e.discardTile), shanten: e.shanten, acceptanceKinds: e.acceptanceTiles.map(tileLabel), acceptanceCount: e.acceptanceTiles.length }));
-  const system = buildSystemPrompt().split('### 输出规则')[0] + `
-### 追问任务（优先于上文的单次推荐任务）
+  const system = buildSystemPrompt().split('### 出牌阶段决策规则')[0] + `
+### 追问任务
 直接回答玩家问题，并结合下方同一冻结局面的本地证据。有效进张单位是种，未扣除可见牌。
 所有合法候选均已计算；数值与具体进张必须引用本地结果，不自行修改。共有及独有牌种由程序展示。
 用户引用错误数量时先纠正口径和数值。不得生成未计算的胜率、剩余张数或确定后续路线。
 提及摸入牌、听牌或进张，不等于提出弃牌方案；必须区分问题中牌的作用，不把摸入牌当作另一种出牌。
+上下文中的分析建议与本地证据只属于本轮讨论快照，不是前几轮的 AI 建议记录。没有提供历史分析时，不能确认或否认自己前几轮建议过什么，也不能拿本轮数据证明当时的决策正确。
+用户说“我是说”或补充澄清时，优先修正对其问题的理解，区分用户描述的历史、当前已知事实与无法核实的历史。
+用户讨论“如果前几轮留着北，现在就有一对北”时，应先承接这一留牌的假设：若当时保留且后来仍摸到北，可组成对子。实际后续局面是否相同未经验证，不据此宣称整条路线确定发生；也不能用事后摸牌结果直接判断当时选择对错。
+历史假设不受本轮合法弃牌列表约束，不能因为所提牌不在本轮手牌中就拒绝讨论；历史数值没有依据时说明无法精确复算，而不是编造。
 按需解释结构，未经验证的路线只能说是可能。指代不明确时简短澄清，不猜测比较对象。
 手牌中的鬼牌不能打；不在本地合法候选中的牌不能作为弃牌方案。
 返回JSON：{"answer":"针对问题的解释","comparisonTiles":["两个被比较的候选key"]}。
 只有用户明确要求比较且对象清楚时返回两个key；其他情况返回空数组。无需重新推荐或套用300字单次分析格式。`;
   const response = await callAI(config, [
     { role: 'system', content: system },
-    { role: 'user', content: `${snapshot.context}\n本地候选证据：${JSON.stringify(evidence)}\n已明确的本地对比：${JSON.stringify(comparison)}` },
+    { role: 'user', content: `讨论范围：本轮第 ${snapshot.game.turnCount} 轮的快照。下列本地证据不包含前几轮的分析记录。\n${snapshot.context}\n本地候选证据：${JSON.stringify(evidence)}\n已明确的本地对比：${JSON.stringify(comparison)}` },
     ...history, { role: 'user', content: question },
   ], 0.3, 4096, signal);
   if (response.error) throw new Error(response.error);
-  let parsed: { answer?: unknown; comparisonTiles?: unknown };
-  try { parsed = JSON.parse(response.content.replace(/^```(?:json)?\s*|\s*```$/g, '').trim()); }
-  catch { throw new Error('AI 回答格式无法识别，请重试。'); }
-  if (typeof parsed.answer !== 'string' || !parsed.answer.trim()) throw new Error('AI 未返回有效回答，请重试。');
+  const parsed = readFollowupReply(response.content);
   const keys = Array.isArray(parsed.comparisonTiles) && parsed.comparisonTiles.every(k => typeof k === 'string') ? parsed.comparisonTiles as string[] : [];
-  const canInferComparison = comparisonIntent(question) && !tileMentions(question).some(m => m.role === 'incoming');
+  const scope = questionScope(question);
+  const canInferComparison = !scope.historical && comparisonIntent(scope.text) && !tileMentions(scope.text).some(m => m.role === 'incoming');
   return { content: parsed.answer.trim(), comparison: comparison ?? (canInferComparison ? compareDiscards(evaluations, keys) : null) };
 }

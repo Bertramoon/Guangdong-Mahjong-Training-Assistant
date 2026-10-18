@@ -55,6 +55,51 @@ describe('followup evidence', () => {
     expect(resolveQuestionTiles('摸四筒和七条有什么区别', evaluations)).toEqual([]);
     expect(resolveQuestionTiles('打四筒后打七条能听牌吗', evaluations)).toEqual([]);
   });
+  it('does not validate historical or counterfactual discards against the current hand', () => {
+    const evaluations = [ev(4,[1]),ev(7,[2])];
+    expect(resolveQuestionTiles('前几轮你让我打北，为什么不留着', evaluations)).toEqual([]);
+    expect(resolveQuestionTiles('我是说，如果我前面几轮留着北，现在就有一对北了，但是你前面让我弃牌了', evaluations)).toEqual([]);
+    expect(resolveQuestionTiles('如果当时留着北而不是打四筒，两种选择有什么区别', evaluations, 'tong-7', ['tong-4','tong-7'])).toEqual([]);
+    expect(resolveQuestionTiles('前几轮你让我留北；现在四筒和七筒选哪个？', evaluations)).toEqual(['tong-4','tong-7']);
+    expect(resolveQuestionTiles('之前你让我打北，但现在四筒和七筒有什么区别？', evaluations)).toEqual(['tong-4','tong-7']);
+    expect(resolveQuestionTiles('现在四筒和七筒有什么区别？之前你让我打北', evaluations)).toEqual(['tong-4','tong-7']);
+    expect(resolveQuestionTiles('如果当时留着北，现在打四筒还是七筒好？', evaluations)).toEqual([]);
+  });
+  it.each([
+    ['plain text', '明白，你说的是前几轮留北的假设。若保留原来的北且后来仍摸到北，就能组成一对。'],
+    ['JSON preceded by prose', '回答如下：\n```json\n{"answer":"这是关于先前留北的假设。","comparisonTiles":[]}\n```'],
+    ['uppercase code fence', '```JSON\n{"answer":"这是关于先前留北的假设。"}\n```'],
+  ])('accepts a readable %s response to the exact clarification', async (_name, content) => {
+    vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>({choices:[{message:{content}}]})})));
+    const game=createGame(0,123);game.phase='discard';
+    const result=await answerQuestion({endpoint:'https://example.test',apiKey:'test',model:'test'},captureSnapshot(game),[ev(4,[1])],[],
+      '我是说，如果我前面几轮留着北，现在就有一对北了，但是你前面让我弃牌了',null);
+    expect(result.content).toContain('北');
+    expect(result.content).not.toContain('```');
+    expect(result.content).not.toContain('"answer"');
+    expect(result.comparison).toBeNull();
+  });
+  it('does not present incomplete JSON or a service HTML error as a successful answer', async () => {
+    const game=createGame(0,123);
+    for(const content of ['{"answer":"未完整返回', '回答如下：\n{"answer":"未完整返回', '<html><body>502 Bad Gateway</body></html>', '{}']) {
+      vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>({choices:[{message:{content}}]})})));
+      await expect(answerQuestion({endpoint:'https://example.test',apiKey:'test',model:'test'},captureSnapshot(game),[],[],'解释',null)).rejects.toThrow();
+    }
+  });
+  it('marks local evidence as current and tells the model not to invent earlier-round recommendations', async () => {
+    let body:any;
+    vi.stubGlobal('fetch',vi.fn(async (_url,init)=>{
+      body=JSON.parse(init.body);
+      return {ok:true,json:async()=>({choices:[{message:{content:'{"answer":"按用户描述讨论先前的假设。","comparisonTiles":["tong-4","tong-7"]}'}}]})};
+    }));
+    const game=createGame(0,123);game.turnCount=8;
+    const result=await answerQuestion({endpoint:'https://example.test',apiKey:'test',model:'test'},captureSnapshot(game),[ev(4,[1]),ev(7,[2])],[],
+      '如果当时留着北而不是打四筒，两种选择有什么区别',null);
+    expect(body.messages[0].content).toContain('不能确认或否认');
+    expect(body.messages[0].content).toContain('事后');
+    expect(body.messages[1].content).toContain('本轮第 8 轮');
+    expect(result.comparison).toBeNull();
+  });
   it('sends local evidence and successful assistant history and validates model comparison references', async () => {
     let body: any;
     vi.stubGlobal('fetch', vi.fn(async (_url, init) => {

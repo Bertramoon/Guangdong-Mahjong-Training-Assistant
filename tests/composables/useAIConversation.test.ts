@@ -41,6 +41,17 @@ describe('AI conversation lifecycle', () => {
     expect(api.comparison.value?.b.discardTile.value).toBe(4);
     scope.stop();
   });
+  it('labels the reanalyzed recommendation as this round rather than an earlier-round record', async () => {
+    const {api,state,answer,analyze,scope}=setup();
+    analyze.mockResolvedValue({recommendation:'打北',reasoning:'本轮依据'});
+    await api.analyze();state.value.turnCount+=3;await api.analyze();
+    api.draft.value='你看，前面我就说留着北吧，你非让我打出去';await api.send();
+    expect(answer).toHaveBeenCalledTimes(1);
+    const history=answer.mock.calls[0][3];
+    expect(history[0].content).toContain('本轮第 3 轮');
+    expect(history[0].content).not.toContain('此前推荐');
+    scope.stop();
+  });
   it('preserves local comparison, draft and successful history after failure; retry adds one exchange', async () => {
     const {api,answer,scope}=setup();
     answer.mockRejectedValueOnce(new Error('offline'));

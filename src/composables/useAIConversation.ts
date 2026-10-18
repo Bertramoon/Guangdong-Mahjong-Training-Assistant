@@ -137,7 +137,7 @@ export function useAIConversation(
       // Local evidence remains useful even without a configured/reachable model.
       if (!configured()) throw new Error('请在设置中填写 AI 服务地址、API Key 和模型名称。');
       status.value = '正在请求 AI 回答…';
-      const history: AIMessage[] = result.value ? [{ role: 'assistant', content: `此前推荐：${result.value.recommendation}\n理由：${result.value.reasoning}` }, ...messages.value] : [...messages.value];
+      const history: AIMessage[] = result.value ? [{ role: 'assistant', content: `本轮第 ${target.game.turnCount} 轮（当前讨论快照）的分析建议：${result.value.recommendation}\n本轮理由：${result.value.reasoning}` }, ...messages.value] : [...messages.value];
       const response = await deps.answer({ ...config.value }, target, entries, history, question, localComparison, signal);
       if (id !== requestId) return;
       if (response.comparison) comparison.value = response.comparison;
