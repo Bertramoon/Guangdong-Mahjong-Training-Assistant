@@ -55,6 +55,33 @@ describe('followup evidence', () => {
     expect(resolveQuestionTiles('摸四筒和七条有什么区别', evaluations)).toEqual([]);
     expect(resolveQuestionTiles('打四筒后打七条能听牌吗', evaluations)).toEqual([]);
   });
+  it.each(['把打北和打白相比呢？', '打北还是打白更好？', '打白和打北比较一下', '打北和打白相比呢?', '北和白都是3向听17种，有区别吗？'])('resolves white-dragon shorthand in %s', question => {
+    const evaluations = [
+      { ...ev(1,[1]), discardTile: { type:'feng' as const, value:4, id:1 } },
+      { ...ev(2,[2]), discardTile: { type:'jian' as const, value:3, id:2 } },
+    ];
+    const keys = resolveQuestionTiles(question, evaluations);
+    expect(new Set(keys)).toEqual(new Set(['feng-4','jian-3']));
+    expect(compareDiscards(evaluations, keys)).not.toBeNull();
+  });
+  it('does not treat ordinary words containing dragon abbreviations as tile comparisons', () => {
+    expect(resolveQuestionTiles('我现在明白了，不过你这个说法和之前相比有什么区别？', [ev(4,[1])])).toEqual([]);
+  });
+  it('supplies computed common and exclusive counts without raw maxCount fields', async () => {
+    let body:any;
+    vi.stubGlobal('fetch',vi.fn(async (_url,init)=>{
+      body=JSON.parse(init.body);
+      return {ok:true,json:async()=>({choices:[{message:{content:'按本地结果解释'}}]})};
+    }));
+    const entries=[ev(4,[1,2,3,4,5,6]),ev(7,[3,4,5,7,8])];
+    const comparison=compareDiscards(entries,['tong-4','tong-7'])!;
+    await answerQuestion({endpoint:'https://example.test',apiKey:'test',model:'test'},captureSnapshot(createGame(0,123)),entries,[],'比较四筒和七筒',comparison);
+    const local=JSON.parse(body.messages[1].content.split('已明确的本地对比：')[1]);
+    expect(local.common).toEqual({count:3,kinds:['三条','四条','五条']});
+    expect(local.onlyA).toEqual({count:3,kinds:['一条','二条','六条']});
+    expect(local.onlyB).toEqual({count:2,kinds:['七条','八条']});
+    expect(JSON.stringify(body)).not.toContain('maxCount');
+  });
   it('does not validate historical or counterfactual discards against the current hand', () => {
     const evaluations = [ev(4,[1]),ev(7,[2])];
     expect(resolveQuestionTiles('前几轮你让我打北，为什么不留着', evaluations)).toEqual([]);

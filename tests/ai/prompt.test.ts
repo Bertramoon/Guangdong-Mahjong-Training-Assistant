@@ -39,4 +39,11 @@ describe('buildSystemPrompt', () => {
     expect(prompt).not.toContain('牌河安全性');
     expect(prompt).not.toContain('不安全');
   });
+
+  it('requires evidence for a preference between numerically tied candidates', () => {
+    const prompt = buildSystemPrompt();
+    expect(prompt).toContain('向听数和进张种数相同');
+    expect(prompt).toContain('不得仅凭风牌或箭牌身份');
+    expect(prompt).toContain('说明并列');
+  });
 });

@@ -41,7 +41,7 @@ function tileMentions(text: string): { key: string; role: 'discard' | 'incoming'
   const mentions: { key: string; role: 'discard' | 'incoming' | 'unknown' }[] = [];
   const values = '一二三四五六七八九';
   const suits: Record<string, TileType> = { 万: 'wan', 条: 'tiao', 筒: 'tong' };
-  const pattern = /([一二三四五六七八九1-9])([万条筒])|东风?|南风?|西风?|北风?|红中|发财|白板|(?<=[打出丢弃摸碰杠留、和与])(?:中|发|白)(?=$|[，。？！、和与牌呢吗后有])/g;
+  const pattern = /([一二三四五六七八九1-9])([万条筒])|东风?|南风?|西风?|北风?|红中|发财|白板|(?<=[打出丢弃摸碰杠留、和与])(?:中|发|白)(?=$|[\s,;?!，。？！；、和与牌呢吗后有都也是更会能可]|相比|比较|对比|还是|之后|之前)/g;
   let end = 0;
   let role: 'discard' | 'incoming' | 'unknown' = 'unknown';
   for (const match of text.matchAll(pattern)) {
@@ -134,10 +134,17 @@ export async function answerQuestion(
   history: AIMessage[], question: string, comparison: DiscardComparison | null, signal?: AbortSignal,
 ): Promise<FollowupAnswer> {
   const evidence = evaluations.map(e => ({ key: tileKey(e.discardTile), discard: tileLabel(e.discardTile), shanten: e.shanten, acceptanceKinds: e.acceptanceTiles.map(tileLabel), acceptanceCount: e.acceptanceTiles.length }));
+  const describeKinds = (tiles: AcceptanceTile[]) => ({ count: tiles.length, kinds: tiles.map(tileLabel) });
+  const comparisonEvidence = comparison ? {
+    a: evidence.find(e => e.key === tileKey(comparison.a.discardTile)),
+    b: evidence.find(e => e.key === tileKey(comparison.b.discardTile)),
+    common: describeKinds(comparison.common), onlyA: describeKinds(comparison.onlyA), onlyB: describeKinds(comparison.onlyB),
+  } : null;
   const system = buildSystemPrompt().split('### 出牌阶段决策规则')[0] + `
 ### 追问任务
 直接回答玩家问题，并结合下方同一冻结局面的本地证据。有效进张单位是种，未扣除可见牌。
 所有合法候选均已计算；数值与具体进张必须引用本地结果，不自行修改。共有及独有牌种由程序展示。
+对比中的 count 是程序已算好的牌种数，直接引用，不重新数牌或按进张总数之差猜测共有及独有种数。
 用户引用错误数量时先纠正口径和数值。不得生成未计算的胜率、剩余张数或确定后续路线。
 提及摸入牌、听牌或进张，不等于提出弃牌方案；必须区分问题中牌的作用，不把摸入牌当作另一种出牌。
 上下文中的分析建议与本地证据只属于本轮讨论快照，不是前几轮的 AI 建议记录。没有提供历史分析时，不能确认或否认自己前几轮建议过什么，也不能拿本轮数据证明当时的决策正确。
@@ -150,7 +157,7 @@ export async function answerQuestion(
 无需重新推荐或套用300字单次分析格式。`;
   const response = await callAI(config, [
     { role: 'system', content: system },
-    { role: 'user', content: `讨论范围：本轮第 ${snapshot.game.turnCount} 轮的快照。下列本地证据不包含前几轮的分析记录。\n${snapshot.context}\n本地候选证据：${JSON.stringify(evidence)}\n已明确的本地对比：${JSON.stringify(comparison)}` },
+    { role: 'user', content: `讨论范围：本轮第 ${snapshot.game.turnCount} 轮的快照。下列本地证据不包含前几轮的分析记录。\n${snapshot.context}\n本地候选证据：${JSON.stringify(evidence)}\n已明确的本地对比：${JSON.stringify(comparisonEvidence)}` },
     ...history, { role: 'user', content: question },
   ], 0.3, 4096, signal, 'text');
   if (response.error) throw new Error(response.error);
