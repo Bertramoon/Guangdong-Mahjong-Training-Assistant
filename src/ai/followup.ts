@@ -45,6 +45,7 @@ function tileMentions(text: string): { key: string; role: 'discard' | 'incoming'
   let end = 0;
   let role: 'discard' | 'incoming' | 'unknown' = 'unknown';
   for (const match of text.matchAll(pattern)) {
+    if (match[0] === '一条' && text[match.index! - 1] === '上' && /^(?:回答|回复|消息)/.test(text.slice(match.index! + match[0].length))) continue;
     const prefix = text.slice(end, match.index);
     if (/[，。？！;；]/.test(prefix)) role = 'unknown';
     for (const verb of prefix.matchAll(/打|出(?!现)|丢|弃|切|摸|抓|进张|等|听|补/g)) {

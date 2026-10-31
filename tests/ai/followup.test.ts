@@ -66,6 +66,7 @@ describe('followup evidence', () => {
   });
   it('does not treat ordinary words containing dragon abbreviations as tile comparisons', () => {
     expect(resolveQuestionTiles('我现在明白了，不过你这个说法和之前相比有什么区别？', [ev(4,[1])])).toEqual([]);
+    expect(resolveQuestionTiles('上一条回答比较的是九筒和四筒，请只总结那个比较。', [ev(4,[1]),ev(9,[2])])).toEqual(['tong-9','tong-4']);
   });
   it('supplies computed common and exclusive counts without raw maxCount fields', async () => {
     let body:any;
