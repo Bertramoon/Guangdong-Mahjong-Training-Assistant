@@ -42,8 +42,11 @@ describe('followup evidence', () => {
   it('resolves Arabic and Chinese names, recommendation and followup references; rejects illegal tiles', () => {
     const evaluations = [ev(4, [1]),ev(7, [2])];
     expect(resolveQuestionTiles('四筒和7筒有什么区别', evaluations)).toEqual(['tong-4','tong-7']);
+    expect(resolveQuestionTiles('打四筒和打七筒各有多少进张？', evaluations)).toEqual(['tong-4','tong-7']);
+    expect(resolveQuestionTiles('打四筒和打七筒各自的独有进张是什么？', evaluations)).toEqual(['tong-4','tong-7']);
     expect(resolveQuestionTiles('为什么不打四筒', evaluations, 'tong-7')).toEqual(['tong-7','tong-4']);
     expect(resolveQuestionTiles('共有的有哪些', evaluations, undefined, ['tong-4','tong-7'])).toEqual(['tong-4','tong-7']);
+    expect(resolveQuestionTiles('你刚才的结论用一句话总结。', evaluations, undefined, ['tong-4','tong-7'])).toEqual([]);
     expect(() => resolveQuestionTiles('为什么不打九筒', evaluations)).toThrow('合法');
   });
   it('distinguishes future draws from discard choices and does not reject incoming tiles outside the hand', () => {
@@ -55,7 +58,7 @@ describe('followup evidence', () => {
     expect(resolveQuestionTiles('摸四筒和七条有什么区别', evaluations)).toEqual([]);
     expect(resolveQuestionTiles('打四筒后打七条能听牌吗', evaluations)).toEqual([]);
   });
-  it.each(['把打北和打白相比呢？', '打北还是打白更好？', '打白和打北比较一下', '打北和打白相比呢?', '北和白都是3向听17种，有区别吗？'])('resolves white-dragon shorthand in %s', question => {
+  it.each(['把打北和打白相比呢？', '打北还是打白更好？', '打白和打北比较一下', '打北和打白相比呢?', '北和白都是3向听17种，有区别吗？', '打北和打白各自的独有进张是什么？'])('resolves white-dragon shorthand in %s', question => {
     const evaluations = [
       { ...ev(1,[1]), discardTile: { type:'feng' as const, value:4, id:1 } },
       { ...ev(2,[2]), discardTile: { type:'jian' as const, value:3, id:2 } },
@@ -67,6 +70,13 @@ describe('followup evidence', () => {
   it('does not treat ordinary words containing dragon abbreviations as tile comparisons', () => {
     expect(resolveQuestionTiles('我现在明白了，不过你这个说法和之前相比有什么区别？', [ev(4,[1])])).toEqual([]);
     expect(resolveQuestionTiles('上一条回答比较的是九筒和四筒，请只总结那个比较。', [ev(4,[1]),ev(9,[2])])).toEqual(['tong-9','tong-4']);
+  });
+  it('recognizes comparison wording before abbreviated dragon tiles', () => {
+    const entries = [
+      { ...ev(1,[1]), discardTile: { type:'jian' as const, value:2, id:1 } },
+      { ...ev(2,[2]), discardTile: { type:'jian' as const, value:3, id:2 } },
+    ];
+    expect(resolveQuestionTiles('对比发和白的共有及独有进张。', entries)).toEqual(['jian-2','jian-3']);
   });
   it('supplies computed common and exclusive counts without raw maxCount fields', async () => {
     let body:any;
@@ -138,6 +148,7 @@ describe('followup evidence', () => {
     const result = await answerQuestion({ endpoint: 'https://example.test', apiKey:'key', model:'test' }, captureSnapshot(game), [ev(4,[1]),ev(7,[2])], [{role:'assistant',content:'之前的解释'}], '继续解释', null);
     expect(body.messages.some((m: any) => m.role === 'assistant')).toBe(true);
     expect(body.messages[0].content).toContain('未扣除可见牌');
+    expect(body.messages[0].content).toContain('不能确定牌墙中');
     expect(body).not.toHaveProperty('response_format');
     expect(body.messages[0].content).not.toContain('返回JSON：');
     expect(body.messages[1].content).toContain('tong-4');

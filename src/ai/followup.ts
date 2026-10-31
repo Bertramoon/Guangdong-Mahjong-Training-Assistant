@@ -41,7 +41,7 @@ function tileMentions(text: string): { key: string; role: 'discard' | 'incoming'
   const mentions: { key: string; role: 'discard' | 'incoming' | 'unknown' }[] = [];
   const values = '一二三四五六七八九';
   const suits: Record<string, TileType> = { 万: 'wan', 条: 'tiao', 筒: 'tong' };
-  const pattern = /([一二三四五六七八九1-9])([万条筒])|东风?|南风?|西风?|北风?|红中|发财|白板|(?<=[打出丢弃摸碰杠留、和与])(?:中|发|白)(?=$|[\s,;?!，。？！；、和与牌呢吗后有都也是更会能可]|相比|比较|对比|还是|之后|之前)/g;
+  const pattern = /([一二三四五六七八九1-9])([万条筒])|东风?|南风?|西风?|北风?|红中|发财|白板|(?<=[打出丢弃摸碰杠留、和与比])(?:中|发|白)(?=$|[\s,;?!，。？！；、和与牌呢吗后有都也是更会能可各的]|相比|比较|对比|还是|之后|之前)/g;
   let end = 0;
   let role: 'discard' | 'incoming' | 'unknown' = 'unknown';
   for (const match of text.matchAll(pattern)) {
@@ -65,7 +65,7 @@ export function namedTiles(text: string): string[] {
   return [...new Set(tileMentions(text).map(m => m.key))];
 }
 
-const comparisonIntent = (text: string) => /比较|对比|相比|区别|差异|还是|哪[个种]|两[种张]|分别|换成|比.*[更好]/.test(text);
+const comparisonIntent = (text: string) => /比较|对比|相比|区别|差异|还是|哪[个种]|两[种张]|分别|各有|各自|换成|比.*[更好]/.test(text);
 
 // Earlier-round claims and counterfactuals are not proposals to discard from this hand.
 const earlierRoundQuestion = (text: string) => /前[面几]*[一二三四五六七八九十\d]*(?:轮|回合)|(?:前面|之前|当时|上一轮|上几轮).{0,30}(?:留|打|出|弃|建议|推荐)/.test(text);
@@ -100,7 +100,7 @@ export function resolveQuestionTiles(question: string, evaluations: DiscardEvalu
   const incoming = mentions.some(m => m.role === 'incoming');
   if (candidates.length === 2 && comparisonIntent(question)) return candidates;
   if (!incoming && candidates.length === 1 && recommendation && recommendation !== candidates[0] && /不打|不出|为什么|为何|比较|对比|相比|换/.test(question)) return [recommendation, candidates[0]];
-  if (mentions.length === 0 && previous.length === 2) return previous;
+  if (mentions.length === 0 && previous.length === 2 && (comparisonIntent(question) || /共有|独有|进张/.test(question))) return previous;
   return [];
 }
 
@@ -144,9 +144,11 @@ export async function answerQuestion(
   const system = buildSystemPrompt().split('### 出牌阶段决策规则')[0] + `
 ### 追问任务
 直接回答玩家问题，并结合下方同一冻结局面的本地证据。有效进张单位是种，未扣除可见牌。
+用户要求总结“刚才”“上一条”或“上一个回答”时，必须只总结对话中紧邻当前问题之前的最后一条 AI 回答，不能总结更早的话题。
 所有合法候选均已计算；数值与具体进张必须引用本地结果，不自行修改。共有及独有牌种由程序展示。
 对比中的 count 是程序已算好的牌种数，直接引用，不重新数牌或按进张总数之差猜测共有及独有种数。
 用户引用错误数量时先纠正口径和数值。不得生成未计算的胜率、剩余张数或确定后续路线。
+牌墙内容和其他玩家的暗牌不可见：即使某种牌没有出现在弃牌或副露中，也不能确定牌墙中有几张，更不能说全部四张都在牌墙；未见牌包括自己的手牌和其他玩家手中的牌，不等于牌墙中的牌。
 提及摸入牌、听牌或进张，不等于提出弃牌方案；必须区分问题中牌的作用，不把摸入牌当作另一种出牌。
 上下文中的分析建议与本地证据只属于本轮讨论快照，不是前几轮的 AI 建议记录。没有提供历史分析时，不能确认或否认自己前几轮建议过什么，也不能拿本轮数据证明当时的决策正确。
 用户说“我是说”或补充澄清时，优先修正对其问题的理解，区分用户描述的历史、当前已知事实与无法核实的历史。
