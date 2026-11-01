@@ -17,6 +17,7 @@ export async function analyzeGame(
   playerIndex?: number,
   discardAdvice?: DiscardRecommendation,
   reactionAnalysis?: ReactionAnalysis,
+  signal?: AbortSignal,
 ): Promise<AnalysisResult> {
   const idx = playerIndex ?? game.currentPlayer;
 
@@ -28,6 +29,7 @@ export async function analyzeGame(
     ],
     0.3,
     8192,
+    signal,
   );
 
   if (response.error) {

@@ -4,6 +4,7 @@
       <span class="advisor-title">碰杠建议</span>
       <span class="advisor-discard">对方打出: {{ discardedTileName }}</span>
     </div>
+    <p class="advisor-note">按牌种统计，未扣除可见牌</p>
     <div class="advisor-options">
       <div class="option-row" :class="{ best: bestAction === 'pass' }">
         <span class="option-action">过牌</span>
@@ -12,13 +13,13 @@
       <div v-if="analysis.pengResult" class="option-row" :class="{ best: bestAction === 'peng' }">
         <span class="option-action">碰</span>
         <span class="option-shanten">{{ analysis.pengResult.bestShanten }}向听</span>
-        <span class="option-acceptance">{{ analysis.pengResult.acceptanceCount }}进张</span>
+        <span class="option-acceptance">有效进张：{{ analysis.pengResult.acceptanceCount }} 种</span>
         <span class="option-detail">出{{ tileName(analysis.pengResult.bestDiscard) }}最优</span>
       </div>
       <div v-if="analysis.mingGangResult" class="option-row" :class="{ best: bestAction === 'mingGang' }">
         <span class="option-action">明杠</span>
         <span class="option-shanten">{{ analysis.mingGangResult.shanten }}向听</span>
-        <span class="option-acceptance">{{ analysis.mingGangResult.acceptanceCount }}进张</span>
+        <span class="option-acceptance">有效进张：{{ analysis.mingGangResult.acceptanceCount }} 种</span>
         <span class="option-detail">摸牌后</span>
       </div>
     </div>
@@ -93,6 +94,7 @@ const recommendationText = computed(() => {
   font-weight: 700;
   font-size: var(--font-md);
 }
+.advisor-note { color:var(--color-text-muted); font-size:var(--font-xs); margin:0 0 var(--space-2); }
 
 .advisor-discard {
   color: var(--color-warning);

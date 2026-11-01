@@ -4,6 +4,7 @@
       <span class="advisor-title">出牌建议</span>
       <span class="advisor-shanten">向听数: {{ currentShanten }}</span>
     </div>
+    <p class="advisor-note">按牌种统计，未扣除可见牌</p>
     <div class="advisor-list">
       <div
         v-for="(ev, i) in evaluations"
@@ -14,7 +15,7 @@
         <span class="advisor-rank">{{ i + 1 }}</span>
         <span class="advisor-tile">{{ tileName(ev.discardTile) }}</span>
         <span class="advisor-shanten-val">{{ ev.shanten }}向听</span>
-        <span class="advisor-acceptance">{{ ev.acceptanceCount }}进账</span>
+        <span class="advisor-acceptance">有效进张：{{ ev.acceptanceCount }} 种</span>
         <div v-if="ev.waitingTiles.length > 0" class="advisor-waiting">
           听: {{ ev.waitingTiles.map(w => tileName({ type: w.type, value: w.value, id: -1 })).join(' ') }}
         </div>
@@ -58,6 +59,7 @@ function tileName(t: Tile): string {
   font-weight: 700;
   font-size: var(--font-md);
 }
+.advisor-note { color:var(--color-text-muted); font-size:var(--font-xs); margin:0 0 var(--space-2); }
 
 .advisor-shanten {
   color: var(--color-gold);

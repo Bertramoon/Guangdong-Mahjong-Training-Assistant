@@ -73,7 +73,11 @@
         </div>
         <InfoDrawer v-model:open="drawerOpen" :tabs="drawerTabs" class="game-drawer">
           <template #ai>
-            <AIAnalysisPanel :result="aiResult" :loading="aiLoading" :error="aiError" @analyze="analyzeCurrentGame" />
+            <AIAnalysisPanel v-model:draft="aiDraft" :result="aiResult" :loading="aiLoading" :error="aiError"
+              :snapshot="aiSnapshot" :comparison="aiComparison" :messages="aiMessages" :stale="aiStale"
+              :can-ask="aiCanAsk" :at-limit="aiAtLimit" :status="aiStatus"
+              @analyze="() => analyzeCurrentGame()" @send="sendQuestion" @cancel="cancelAI"
+              @restart="restartAI" @settings="showSettings = true" />
           </template>
           <template #advice>
             <DiscardAdvisorVue v-if="discardAdvice" :evaluations="discardAdvice.evaluations" :current-shanten="discardAdvice.currentShanten" />
@@ -125,7 +129,7 @@ import { hasCachedVersion } from '../engine/shanten-cache';
 import { canPeng, canMingGang } from '../engine/meld';
 import AIAnalysisPanel from './AIAnalysisPanel.vue';
 import SettingsModal from './SettingsModal.vue';
-import { analyzeGame, type AnalysisResult } from '../ai/analyzer';
+import { useAIConversation } from '../composables/useAIConversation';
 import { loadAIConfig, saveAIConfig, loadSettings, saveSettings, saveGameSummary } from '../storage/store';
 import type { AIProviderConfig } from '../ai/provider';
 import type { AppSettings } from '../storage/store';
@@ -189,12 +193,15 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown);
 });
 
-const aiResult = ref<AnalysisResult | null>(null);
-const aiLoading = ref(false);
-const aiError = ref('');
 const showSettings = ref(false);
 const revealMode = ref(false);
 const aiConfig = ref<AIProviderConfig>(loadAIConfig());
+const {
+  result: aiResult, loading: aiLoading, error: aiError, draft: aiDraft,
+  snapshot: aiSnapshot, comparison: aiComparison, messages: aiMessages,
+  stale: aiStale, canAsk: aiCanAsk, atLimit: aiAtLimit, status: aiStatus,
+  analyze: analyzeCurrentGame, send: sendQuestion, cancel: cancelAI, restart: restartAI, reset: resetAI,
+} = useAIConversation(gameState, aiConfig, reactionAdvice);
 
 const seedInput = ref('');
 
@@ -258,21 +265,11 @@ async function handleStart() {
   starting.value = true;
   try {
     await gameReadyPromise;
+    resetAI();
     startGameAndAutoPlay(seed);
   } finally {
     starting.value = false;
   }
-}
-
-async function analyzeCurrentGame() {
-  if (!gameState.value || aiLoading.value) return;
-  aiLoading.value = true;
-  aiError.value = '';
-  aiResult.value = null;
-  const result = await analyzeGame(aiConfig.value, gameState.value, 0, discardAdvice.value ?? undefined, reactionAdvice.value ?? undefined);
-  aiResult.value = result;
-  if (result.error) aiError.value = result.error;
-  aiLoading.value = false;
 }
 
 function onSaveSettings(config: AIProviderConfig, settings: AppSettings) {
@@ -283,6 +280,7 @@ function onSaveSettings(config: AIProviderConfig, settings: AppSettings) {
 }
 
 async function handleNewGame() {
+  resetAI();
   revealMode.value = false;
   seedInput.value = '';
   await gameReadyPromise;
@@ -290,6 +288,7 @@ async function handleNewGame() {
 }
 
 async function handleReplay(seed: number) {
+  resetAI();
   revealMode.value = false;
   await gameReadyPromise;
   startGameAndAutoPlay(seed, false);
@@ -370,7 +369,7 @@ watch(
   () => gameState.value?.phase === 'discard' && gameState.value?.currentPlayer === 0,
   (isPlayerTurn, wasPlayerTurn) => {
     if (isPlayerTurn && !wasPlayerTurn && appSettings.value.autoAnalysis && aiConfig.value.apiKey) {
-      analyzeCurrentGame();
+      analyzeCurrentGame(true);
     }
   },
 );

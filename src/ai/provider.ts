@@ -11,16 +11,24 @@ export interface AIResponse {
   error?: string;
 }
 
+export interface AIMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
 export async function callAI(
   config: AIProviderConfig,
-  messages: { role: 'system' | 'user'; content: string }[],
+  messages: AIMessage[],
   temperature?: number,
   maxTokens?: number,
+  signal?: AbortSignal,
+  outputFormat: 'json' | 'text' = 'json',
 ): Promise<AIResponse> {
   const url = config.endpoint.replace(/\/+$/, '') + '/v1/chat/completions';
 
   try {
     const response = await fetch(url, {
+      signal,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -31,9 +39,7 @@ export async function callAI(
         messages,
         temperature: temperature ?? 0.7,
         max_tokens: maxTokens ?? 4096,
-        response_format: {
-          type: 'json_object'
-        },
+        ...(outputFormat === 'json' ? { response_format: { type: 'json_object' } } : {}),
         thinking: {
           type: "disabled"
         }
@@ -51,6 +57,14 @@ export async function callAI(
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
+    if (import.meta.env.DEV && import.meta.env.MODE !== 'test') console.debug('[AI response diagnostic]', JSON.stringify({
+      model: data.model,
+      outputFormat,
+      finishReason: data.choices?.[0]?.finish_reason,
+      contentType: typeof content,
+      contentLength: typeof content === 'string' ? content.length : null,
+      nonWhitespaceLength: typeof content === 'string' ? content.trim().length : null,
+    }));
 
     if (typeof content !== 'string') {
       return {
@@ -58,6 +72,13 @@ export async function callAI(
         model: config.model,
         error: 'Unexpected API response format',
       };
+    }
+
+    if (data.choices?.[0]?.finish_reason === 'length') {
+      return { content: '', model: config.model, error: 'AI 回答达到输出长度上限，未完整返回，请缩短问题后重试。' };
+    }
+    if (!content.trim()) {
+      return { content: '', model: config.model, error: 'AI 服务返回空回答，请重试。' };
     }
 
     return { content, model: config.model };
