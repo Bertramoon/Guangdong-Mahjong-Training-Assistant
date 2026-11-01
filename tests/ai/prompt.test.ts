@@ -1,5 +1,34 @@
 import { describe, it, expect } from 'vitest';
-import { buildSystemPrompt } from '../../src/ai/prompt';
+import { buildSystemPrompt, describeHandStructure } from '../../src/ai/prompt';
+
+describe('hand structure evidence', () => {
+  it('lists real pairs and adjacent or gapped suited tiles, never a three-step gap', () => {
+    const hand = [3,6,6,7,8].map((value,id) => ({type:'tong' as const,value,id}));
+    const evidence = describeHandStructure(hand, 'jian', 1);
+    expect(evidence).toContain('对子：六筒');
+    expect(evidence).toContain('六筒、七筒');
+    expect(evidence).toContain('六筒、八筒');
+    expect(evidence).not.toContain('三筒、六筒');
+  });
+  it('excludes ghost tiles from natural structures and identifies overlapping groups', () => {
+    const hand = [1,2,2,3].map((value,id) => ({type:'wan' as const,value,id}));
+    const evidence = describeHandStructure(hand, 'wan', 2);
+    expect(evidence).not.toContain('对子：二万');
+    expect(evidence).not.toContain('一万、二万');
+    expect(evidence).toContain('一万、三万');
+    expect(evidence).toContain('可能重叠');
+  });
+  it('recognizes triplets and sequences without joining different suits', () => {
+    const hand = [
+      ...[3,3,3,4,5].map((value,id) => ({type:'tiao' as const,value,id})),
+      {type:'tong' as const,value:6,id:6},
+    ];
+    const evidence = describeHandStructure(hand, 'jian', 1);
+    expect(evidence).toContain('刻子：三条');
+    expect(evidence).toContain('三条、四条、五条');
+    expect(evidence).not.toContain('五条、六筒');
+  });
+});
 
 describe('buildSystemPrompt', () => {
   it('declares the Guangdong tui dao hu ruleset and self-draw-only win rule', () => {
