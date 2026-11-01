@@ -19,6 +19,21 @@ describe('AI provider', () => {
     expect(requests[0].response_format).toEqual({type:'json_object'});
     expect(requests[1]).not.toHaveProperty('response_format');
   });
+  it('uses DeepSeek Flash thinking for single analysis and keeps followup and other providers unchanged', async () => {
+    const fetcher=vi.fn(async()=>({ok:true,json:async()=>({choices:[{message:{content:'正常回答'},finish_reason:'stop'}]})}));
+    vi.stubGlobal('fetch',fetcher);
+    const config={endpoint:'https://api.deepseek.com',apiKey:'test',model:'deepseek-flash'};
+    await callAI(config,[{role:'user',content:'分析'}],0.3,8192);
+    await callAI(config,[{role:'user',content:'追问'}],0.3,4096,undefined,'text');
+    await callAI({...config,endpoint:'https://example.test'},[{role:'user',content:'分析'}],0.3,8192);
+    await callAI({...config,model:'other-model'},[{role:'user',content:'分析'}],0.3,8192);
+    const requests=fetcher.mock.calls.map(call=>JSON.parse((call as any)[1].body));
+    expect(requests[0].thinking).toEqual({type:'enabled'});
+    expect(requests[0].reasoning_effort).toBe('high');
+    expect(requests[1].thinking).toEqual({type:'disabled'});
+    expect(requests[2].thinking).toEqual({type:'disabled'});
+    expect(requests[3].thinking).toEqual({type:'disabled'});
+  });
   it('recognizes the actual whitespace-only successful response instead of passing it to a JSON parser', async () => {
     vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>({choices:[{message:{content:' '.repeat(182)},finish_reason:'stop'}]})})));
     const result=await callAI({endpoint:'https://example.test',apiKey:'test',model:'test'},[{role:'user',content:'我觉得能凑一对啊'}]);
