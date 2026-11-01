@@ -27,6 +27,7 @@ export async function callAI(
   const url = config.endpoint.replace(/\/+$/, '') + '/v1/chat/completions';
 
   try {
+    const deepseekAnalysis = outputFormat === 'json' && config.model === 'deepseek-flash' && new URL(config.endpoint).hostname === 'api.deepseek.com';
     const response = await fetch(url, {
       signal,
       method: 'POST',
@@ -40,9 +41,8 @@ export async function callAI(
         temperature: temperature ?? 0.7,
         max_tokens: maxTokens ?? 4096,
         ...(outputFormat === 'json' ? { response_format: { type: 'json_object' } } : {}),
-        thinking: {
-          type: "disabled"
-        }
+        thinking: { type: deepseekAnalysis ? 'enabled' : 'disabled' },
+        ...(deepseekAnalysis ? { reasoning_effort: 'high' } : {}),
       }),
     });
 
@@ -60,6 +60,8 @@ export async function callAI(
     if (import.meta.env.DEV && import.meta.env.MODE !== 'test') console.debug('[AI response diagnostic]', JSON.stringify({
       model: data.model,
       outputFormat,
+      thinking: deepseekAnalysis ? 'enabled' : 'disabled',
+      hasReasoning: typeof data.choices?.[0]?.message?.reasoning_content === 'string' && data.choices[0].message.reasoning_content.length > 0,
       finishReason: data.choices?.[0]?.finish_reason,
       contentType: typeof content,
       contentLength: typeof content === 'string' ? content.length : null,

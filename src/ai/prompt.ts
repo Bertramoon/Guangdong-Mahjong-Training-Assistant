@@ -1,4 +1,4 @@
-import type { GameState, MeldType } from '../engine/types';
+import type { GameState, MeldType, Tile, TileType } from '../engine/types';
 import type { DiscardRecommendation, ReactionAnalysis } from '../engine/advisor';
 import { getTileName } from '../engine/tile';
 
@@ -9,8 +9,38 @@ const MELD_TYPE_NAMES: Record<MeldType, string> = {
   jia_gang: '加杠',
 };
 
+// Enumeration of natural structures, not a decomposition: groups may overlap.
+export function describeHandStructure(hand: Tile[], ghostType: TileType, ghostValue: number): string {
+  const natural = hand.filter(t => t.type !== ghostType || t.value !== ghostValue);
+  const counts = new Map<string, number>();
+  for (const tile of natural) {
+    const key = `${tile.type}-${tile.value}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const name = (type: TileType, value: number) => getTileName({ type, value, id: -1 });
+  const types: TileType[] = ['wan','tiao','tong','feng','jian'];
+  const pairs: string[] = [], triplets: string[] = [], sequences: string[] = [], partials: string[] = [];
+  for (const type of types) {
+    const max = type === 'feng' ? 4 : type === 'jian' ? 3 : 9;
+    for (let value = 1; value <= max; value++) {
+      const count = counts.get(`${type}-${value}`) ?? 0;
+      if (count >= 2) pairs.push(name(type, value));
+      if (count >= 3) triplets.push(name(type, value));
+      if (max !== 9 || !count) continue;
+      for (const gap of [1, 2]) {
+        if (value + gap <= 9 && counts.has(`${type}-${value + gap}`)) partials.push(`${name(type,value)}、${name(type,value + gap)}`);
+      }
+      if (value <= 7 && counts.has(`${type}-${value + 1}`) && counts.has(`${type}-${value + 2}`)) {
+        sequences.push(`${name(type,value)}、${name(type,value + 1)}、${name(type,value + 2)}`);
+      }
+    }
+  }
+  const list = (items: string[]) => items.length ? items.join('；') : '无';
+  return `以下为当前手牌中不使用鬼牌的自然结构候选，可能重叠，不代表可同时组成的最佳拆分或弃牌后的结构：\n对子：${list(pairs)}\n刻子：${list(triplets)}\n顺子：${list(sequences)}\n同花色相邻或隔一张的两牌（可能搭子）：${list(partials)}\n鬼牌可替代的结构和未来摸牌路线未在此计算。`;
+}
+
 export function buildSystemPrompt(): string {
-  return `你是一位广东麻将推倒胡（自摸玩法）策略分析专家。
+  return `你是一名广东推倒胡麻将老手，熟悉自摸玩法和牌型结构，善于依据已验证的事实向玩家解释选择。
 
 ### 规则要点（必须严格遵守，不得套用其他麻将规则）
 - 本局为广东麻将推倒胡玩法：只能自摸胡牌，不存在点炮（荣和/放铳），也不存在抢杠胡
@@ -25,7 +55,10 @@ export function buildSystemPrompt(): string {
   - reaction: 反应阶段（等待决定碰/杠）
 
 ### 证据边界
+- 解释手牌的自然对子、刻子、顺子、搭子时，只引用本地结构候选；副露另以“你的副露”为依据。数牌搭子必须同花色且相差1或2，不能将相差3的牌称为搭子。结构候选可能重叠，并非可同时成立的拆分；出牌后需确认所述结构仍存在。鬼牌替代及未来路线未经计算时不得断言。
+- 不在自然结构候选中的两张牌，不得用“关联”“配合”等模糊说法暗示它们已经构成搭子或共同结构；若没有已验证的结构依据，直接省略该理由。
 - 向听数和进张种数相同的候选，若没有可见牌或具体结构差异支持，必须说明并列，不编造唯一最优理由。
+- 向听数和进张种数相同的候选，优先打孤张风箭只是并列时的排序习惯，不能将排序习惯说成速度优势，不能声称其他并列候选速度更慢。
 - 不得仅凭风牌或箭牌身份断言某张牌更容易成对、成将或更容易摸到；任何概率或剩余张数结论都需要相应计算依据。
 
 ### 出牌阶段决策规则
@@ -64,6 +97,7 @@ export function buildUserPrompt(game: GameState, playerIndex: number, discardAdv
   // Current player's hand
   const handNames = game.hands[playerIndex].map(getTileName).join('、');
   lines.push(`你的手牌：${handNames}`);
+  lines.push(describeHandStructure(game.hands[playerIndex], game.ghostType, game.ghostValue));
 
   // Ghost tile
   const ghostName = getTileName({ type: game.ghostType, value: game.ghostValue, id: -1 });
